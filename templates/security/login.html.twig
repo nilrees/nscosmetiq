@@ -1,0 +1,145 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign In | NS Cosmetiq{% endblock %}
+
+{% block body %}
+
+<div class="ns-login-page">
+
+    <div class="ns-login-container">
+
+        <!-- LEFT: LOGIN FORM -->
+        <div class="ns-login-left">
+
+            <div class="ns-login-brand">
+                <span class="ns-brand-mark">✦</span>
+                <h2>NS COSMETIQ</h2>
+                <p>BEAUTY MANAGEMENT SYSTEM</p>
+            </div>
+
+            <div class="ns-login-form-wrapper">
+
+                <div class="ns-login-heading">
+                    <span class="ns-login-eyebrow">
+                        WELCOME BACK
+                    </span>
+
+                    <h1>Sign in to your account</h1>
+
+                    <p>
+                        Manage your beauty products,
+                        inventory, and accounts.
+                    </p>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
+
+                {% if app.user %}
+                    <div class="alert alert-info">
+                        Logged in as {{ app.user.userIdentifier }}
+                        <a href="{{ logout_path() }}">Logout</a>
+                    </div>
+                {% endif %}
+
+                <form method="post" class="ns-login-form">
+
+                    <div class="ns-form-group">
+                        <label for="username">Email Address</label>
+
+                        <input
+                            type="email"
+                            value="{{ last_username }}"
+                            name="_username"
+                            id="username"
+                            class="form-control"
+                            placeholder="Enter your email address"
+                            autocomplete="email"
+                            required
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="ns-form-group">
+                        <label for="password">Password</label>
+
+                        <input
+                            type="password"
+                            name="_password"
+                            id="password"
+                            class="form-control"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="_csrf_token"
+                        data-controller="csrf-protection"
+                        value="{{ csrf_token('authenticate') }}"
+                    >
+
+                    <button
+                        class="btn ns-login-button"
+                        type="submit"
+                    >
+                        SIGN IN
+                        <span>→</span>
+                    </button>
+
+                </form>
+
+                <div class="ns-login-footer">
+                    <p>© 2026 NS Cosmetiq. All rights reserved.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT: BRAND PRESENTATION -->
+        <div class="ns-login-right">
+
+            <div class="ns-login-decoration">
+                <div class="ns-decoration-circle"></div>
+                <div class="ns-decoration-circle-small"></div>
+            </div>
+
+            <div class="ns-login-visual-content">
+
+                <span class="ns-visual-eyebrow">
+                    NS COSMETIQ
+                </span>
+
+               
+<h2>Welcome to NS Cosmetiq</h2>
+
+
+                
+<p>
+    Manage your products, inventory,
+    and team in one place.
+</p>
+
+
+                <div class="ns-visual-line"></div>
+
+                <span class="ns-visual-bottom">
+                    DISCOVER YOUR BEST SKIN
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

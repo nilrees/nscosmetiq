@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+<h1 class="h3 mb-4">Admin Dashboard</h1>
+
+<div class="row g-3">
+    <div class="col-12 col-md-4">
+        <div class="card text-bg-primary h-100">
+            <div class="card-body">
+                <div class="text-uppercase small">Total Users</div>
+                <div class="display-5">{{ totalUsers }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card text-bg-success h-100">
+            <div class="card-body">
+                <div class="text-uppercase small">Total Staff</div>
+                <div class="display-5">{{ totalStaff }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card text-bg-warning h-100">
+            <div class="card-body">
+                <div class="text-uppercase small">Total Products</div>
+                <div class="display-5">{{ totalRecords }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

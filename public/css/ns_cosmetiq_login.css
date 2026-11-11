@@ -1,0 +1,178 @@
+
+/* NS COSMETIQ - SIMPLE LOGIN DESIGN */
+
+.ns-login-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: #FCF9F7;
+}
+
+.ns-login-container {
+    display: grid;
+    grid-template-columns: 1fr 0.85fr;
+    width: 100%;
+    max-width: 900px;
+    min-height: 540px;
+    background: #FFFFFF;
+    border: 1px solid #E8DCD6;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(53,43,40,0.07);
+}
+
+.ns-login-left {
+    padding: 40px 48px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ns-login-brand h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #352B28;
+}
+
+.ns-login-brand p {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #66564F;
+}
+
+.ns-brand-mark {
+    color: #A94F35;
+    font-size: 24px;
+}
+
+.ns-login-form-wrapper {
+    margin: auto 0;
+    padding: 25px 0;
+}
+
+.ns-login-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    color: #A94F35;
+}
+
+.ns-login-heading h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #352B28;
+    margin: 12px 0;
+}
+
+.ns-login-heading p {
+    font-size: 13px;
+    color: #66564F;
+    margin-bottom: 25px;
+}
+
+.ns-form-group {
+    margin-bottom: 18px;
+}
+
+.ns-form-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ns-form-group .form-control {
+    width: 100%;
+    height: 46px;
+    border: 1px solid #D8C9C2 !important;
+    background: #FFFFFF !important;
+    border-radius: 8px !important;
+    padding: 10px 14px;
+}
+
+.ns-form-group .form-control:focus {
+    border-color: #A94F35 !important;
+    box-shadow: 0 0 0 3px rgba(169,79,53,0.12) !important;
+}
+
+.ns-login-button {
+    width: 100%;
+    height: 48px;
+    background: #A94F35;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ns-login-button:hover {
+    background: #8F402B;
+}
+
+.ns-login-footer {
+    margin-top: 30px;
+    font-size: 11px;
+    color: #756760;
+}
+
+/* RIGHT PANEL */
+
+.ns-login-right {
+    display: flex;
+    align-items: center;
+    padding: 45px;
+    background: #F5E5DF;
+    border-left: 1px solid #EAD8D1;
+}
+
+.ns-login-decoration,
+.ns-decoration-circle,
+.ns-decoration-circle-small,
+.ns-visual-line {
+    display: none !important;
+}
+
+.ns-login-visual-content h2 {
+    font-size: 30px;
+    font-weight: 600;
+    color: #352B28;
+    margin: 18px 0;
+}
+
+.ns-login-visual-content h2 em {
+    color: #A94F35;
+    font-style: normal;
+}
+
+.ns-login-visual-content p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #66564F;
+}
+
+.ns-visual-eyebrow,
+.ns-visual-bottom {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #A94F35;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+    .ns-login-container {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+    }
+
+    .ns-login-left {
+        padding: 35px 28px;
+    }
+
+    .ns-login-right {
+        display: none;
+    }
+}

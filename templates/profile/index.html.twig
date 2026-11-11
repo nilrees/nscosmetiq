@@ -1,0 +1,48 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile | NS Cosmetiq{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <h2 class="mb-4">My Profile</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h4 class="mb-4">Account Information</h4>
+
+            <p>
+                <strong>Full Name:</strong>
+                {{ user.fullName }}
+            </p>
+
+            <p>
+                <strong>Email Address:</strong>
+                {{ user.email }}
+            </p>
+
+            <p>
+                <strong>Account Role:</strong>
+                {{ user.isAdmin ? 'Administrator' : 'Staff' }}
+            </p>
+
+            <p>
+                <strong>Account Status:</strong>
+                {{ user.isActive ? 'Active' : 'Disabled' }}
+            </p>
+
+            <p>
+                <strong>Date Created:</strong>
+                {{ user.createdAt ? user.createdAt|date('F d, Y') : 'N/A' }}
+            </p>
+
+            <hr>
+
+            <a href="{{ path('app_change_password') }}"
+               class="btn btn-primary">
+                Change Password
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

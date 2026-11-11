@@ -1,0 +1,52 @@
+
+<aside class="sidebar">
+    <div class="brand">
+        NS Cosmetiq
+    </div>
+
+    <div class="menu-label">Main Menu</div>
+
+    <nav class="nav flex-column">
+
+        <a class="nav-link {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
+           href="{{ path('product_index') }}">
+            Products
+        </a>
+
+        {% if is_granted('ROLE_ADMIN') %}
+
+            <a class="nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}"
+               href="{{ path('admin_dashboard') }}">
+                Dashboard
+            </a>
+
+            <a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_user_' %}active{% endif %}"
+               href="{{ path('admin_user_index') }}">
+                Users
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+    <div class="menu-label">Account</div>
+
+    <nav class="nav flex-column">
+
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_profile' %}active{% endif %}"
+           href="{{ path('app_profile') }}">
+            My Profile
+        </a>
+
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_change_password' %}active{% endif %}"
+           href="{{ path('app_change_password') }}">
+            Change Password
+        </a>
+
+        <a class="nav-link"
+           href="{{ path('app_logout') }}">
+            Logout
+        </a>
+
+    </nav>
+</aside>
