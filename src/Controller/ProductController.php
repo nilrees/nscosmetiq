@@ -7,6 +7,7 @@ use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,6 +17,54 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_STAFF')]
 class ProductController extends AbstractController
 {
+    private function uploadProductImage(
+        UploadedFile $image
+    ): string {
+        $uploadDirectory = $this->getParameter('kernel.project_dir')
+            . '/public/uploads/products';
+
+        if (!is_dir($uploadDirectory)) {
+            if (!mkdir($uploadDirectory, 0775, true)
+                && !is_dir($uploadDirectory)) {
+                throw new \RuntimeException(
+                    'Unable to create the product image directory.'
+                );
+            }
+        }
+
+        $extension = match ($image->getMimeType()) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => throw new \RuntimeException(
+                'Unsupported product image format.'
+            ),
+        };
+
+        $filename = bin2hex(random_bytes(16)) . '.' . $extension;
+
+        $image->move($uploadDirectory, $filename);
+
+        return $filename;
+    }
+
+    private function deleteProductImage(?string $filename): void
+    {
+        if (!$filename) {
+            return;
+        }
+
+        $uploadDirectory = $this->getParameter('kernel.project_dir')
+            . '/public/uploads/products';
+
+        $safeFilename = basename($filename);
+        $path = $uploadDirectory . '/' . $safeFilename;
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
     #[Route('', name: 'product_index', methods: ['GET'])]
     public function index(
         Request $request,
@@ -47,12 +96,28 @@ class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $image = $form->get('imageFile')->getData();
+            $uploadedFilename = null;
+
+            if ($image instanceof UploadedFile) {
+                $uploadedFilename = $this->uploadProductImage($image);
+                $product->setImageFilename($uploadedFilename);
+            }
+
             $product->setCreatedBy($this->getUser());
 
-            $entityManager->persist($product);
-            $entityManager->flush();
+            try {
+                $entityManager->persist($product);
+                $entityManager->flush();
+            } catch (\Throwable $exception) {
+                $this->deleteProductImage($uploadedFilename);
+                throw $exception;
+            }
 
-            $this->addFlash('success', 'Product created successfully.');
+            $this->addFlash(
+                'success',
+                'Product created successfully.'
+            );
 
             return $this->redirectToRoute('product_index');
         }
@@ -75,9 +140,31 @@ class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $image = $form->get('imageFile')->getData();
 
-            $this->addFlash('success', 'Product updated successfully.');
+            $oldFilename = $product->getImageFilename();
+            $newFilename = null;
+
+            if ($image instanceof UploadedFile) {
+                $newFilename = $this->uploadProductImage($image);
+                $product->setImageFilename($newFilename);
+            }
+
+            try {
+                $entityManager->flush();
+            } catch (\Throwable $exception) {
+                $this->deleteProductImage($newFilename);
+                throw $exception;
+            }
+
+            if ($newFilename !== null) {
+                $this->deleteProductImage($oldFilename);
+            }
+
+            $this->addFlash(
+                'success',
+                'Product updated successfully.'
+            );
 
             return $this->redirectToRoute('product_index');
         }
@@ -100,10 +187,17 @@ class ProductController extends AbstractController
             'delete-product-' . $product->getId(),
             $request->request->get('_token')
         )) {
+            $filename = $product->getImageFilename();
+
             $entityManager->remove($product);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Product deleted successfully.');
+            $this->deleteProductImage($filename);
+
+            $this->addFlash(
+                'success',
+                'Product deleted successfully.'
+            );
         }
 
         return $this->redirectToRoute('product_index');

@@ -17,16 +17,27 @@ class Product
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Product name is required.')]
-    #[Assert\Length(min: 3, max: 100, minMessage: 'Name must be at least {{ limit }} characters.')]
+    #[Assert\Length(
+        min: 3,
+        max: 100,
+        minMessage: 'Name must be at least {{ limit }} characters.'
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Assert\Length(max: 1000, maxMessage: 'Description is too long (max {{ limit }} characters).')]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: 'Description is too long (max {{ limit }} characters).'
+    )]
     private ?string $description = null;
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Category is required.')]
     private ?string $category = null;
+
+    // Stores the uploaded product image filename
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageFilename = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Price is required.')]
@@ -63,7 +74,6 @@ class Product
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -75,7 +85,6 @@ class Product
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -87,7 +96,17 @@ class Product
     public function setCategory(string $category): static
     {
         $this->category = $category;
+        return $this;
+    }
 
+    public function getImageFilename(): ?string
+    {
+        return $this->imageFilename;
+    }
+
+    public function setImageFilename(?string $imageFilename): static
+    {
+        $this->imageFilename = $imageFilename;
         return $this;
     }
 
@@ -99,7 +118,6 @@ class Product
     public function setPrice(string $price): static
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -111,7 +129,6 @@ class Product
     public function setStock(int $stock): static
     {
         $this->stock = $stock;
-
         return $this;
     }
 
@@ -123,7 +140,6 @@ class Product
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -135,7 +151,6 @@ class Product
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
-
         return $this;
     }
 }

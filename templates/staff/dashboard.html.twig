@@ -1,0 +1,587 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Staff Dashboard | NS COSMETIQ{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .staff-dashboard {
+        font-family: 'Raleway', sans-serif;
+        color: #49332D;
+    }
+
+    .staff-welcome {
+        background: linear-gradient(120deg, #FFF0E9, #F9E3DC);
+        border: 1px solid #EED5C9;
+        border-radius: 22px;
+        padding: 32px;
+        margin-bottom: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .staff-eyebrow {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        color: #B25B3D;
+        margin-bottom: 10px;
+    }
+
+    .staff-welcome h1 {
+        font-size: clamp(25px, 3vw, 36px);
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .staff-welcome p {
+        font-size: 14px;
+        color: #795C52;
+        margin: 0;
+    }
+
+    .staff-role-badge {
+        background: white;
+        border: 1px solid #E9C6B8;
+        color: #A65339;
+        border-radius: 30px;
+        padding: 12px 20px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .staff-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .staff-stat-card {
+        background: #FFFFFF;
+        border: 1px solid #F0DDD5;
+        border-radius: 18px;
+        padding: 24px;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .staff-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(73, 51, 45, .08);
+    }
+
+    .staff-stat-icon {
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFF0E9;
+        border-radius: 13px;
+        font-size: 23px;
+        margin-bottom: 18px;
+    }
+
+    .staff-stat-label {
+        color: #92756C;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .staff-stat-number {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .staff-stat-note {
+        color: #A18A82;
+        font-size: 11px;
+        margin-top: 9px;
+    }
+
+    .staff-section {
+        background: #FFFFFF;
+        border: 1px solid #F0DDD5;
+        border-radius: 20px;
+        padding: 26px;
+        margin-bottom: 26px;
+    }
+
+    .staff-section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .staff-section-heading h2 {
+        font-size: 20px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .staff-section-heading p {
+        color: #92756C;
+        font-size: 12px;
+        margin: 6px 0 0;
+    }
+
+    .staff-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .staff-action-card {
+        display: block;
+        background: #FFFAF7;
+        border: 1px solid #F0DDD5;
+        border-radius: 15px;
+        padding: 22px;
+        color: #49332D;
+        text-decoration: none;
+        transition: .2s ease;
+    }
+
+    .staff-action-card:hover {
+        background: #FFF0E9;
+        border-color: #DDAE9B;
+        transform: translateY(-3px);
+        color: #49332D;
+    }
+
+    .staff-action-icon {
+        font-size: 26px;
+        margin-bottom: 14px;
+    }
+
+    .staff-action-card h3 {
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+
+    .staff-action-card p {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #92756C;
+        margin: 0;
+    }
+
+    .staff-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .staff-table thead {
+        background: #FFF1EB;
+    }
+
+    .staff-table th {
+        padding: 14px 16px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+        color: #76584F;
+        white-space: nowrap;
+    }
+
+    .staff-table td {
+        padding: 15px 16px;
+        border-bottom: 1px solid #F3E7E1;
+        vertical-align: middle;
+        font-size: 13px;
+    }
+
+    .staff-product-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .staff-product-image {
+        width: 54px;
+        height: 54px;
+        object-fit: cover;
+        border-radius: 11px;
+        background: #FFF0E9;
+        border: 1px solid #F0DDD5;
+    }
+
+    .staff-product-placeholder {
+        width: 54px;
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFF0E9;
+        border-radius: 11px;
+        font-size: 23px;
+        flex-shrink: 0;
+    }
+
+    .staff-product-name {
+        font-weight: 800;
+    }
+
+    .staff-product-category {
+        color: #92756C;
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    .staff-stock-badge {
+        display: inline-block;
+        padding: 7px 11px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .staff-stock-good {
+        background: #E6F6EB;
+        color: #26724A;
+    }
+
+    .staff-stock-low {
+        background: #FFF2D9;
+        color: #956017;
+    }
+
+    .staff-stock-out {
+        background: #FCE7E9;
+        color: #AD4350;
+    }
+
+    .staff-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 18px;
+        border-radius: 10px;
+        background: #C0603F;
+        color: white;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+        border: none;
+        transition: .2s ease;
+    }
+
+    .staff-btn:hover {
+        background: #A34E32;
+        color: white;
+    }
+
+    .staff-btn-outline {
+        background: white;
+        color: #49332D;
+        border: 1px solid #E9C6B8;
+    }
+
+    .staff-btn-outline:hover {
+        background: #FFF0E9;
+        color: #49332D;
+    }
+
+    .staff-empty {
+        text-align: center;
+        padding: 45px 20px;
+        color: #92756C;
+    }
+
+    .staff-empty-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+
+    .staff-empty h3 {
+        color: #49332D;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    @media (max-width: 1100px) {
+        .staff-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .staff-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .staff-welcome {
+            padding: 24px;
+        }
+
+        .staff-section {
+            padding: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .staff-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="staff-dashboard">
+
+    {# WELCOME BANNER #}
+    <div class="staff-welcome">
+        <div>
+            <div class="staff-eyebrow">
+                NS COSMETIQ / STAFF WORKSPACE
+            </div>
+
+            <h1>Welcome back, {{ app.user.fullName }}!</h1>
+
+            <p>
+                Here's an overview of your products,
+                inventory, and recent activity.
+            </p>
+        </div>
+
+        <span class="staff-role-badge">
+            ✦ STAFF ACCOUNT
+        </span>
+    </div>
+
+    {# STATISTICS #}
+    <div class="staff-stats">
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon">📦</div>
+            <div class="staff-stat-label">My Products</div>
+            <div class="staff-stat-number">
+                {{ totalProducts }}
+            </div>
+            <div class="staff-stat-note">
+                Products you created
+            </div>
+        </div>
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon">🛍️</div>
+            <div class="staff-stat-label">Total Stock</div>
+            <div class="staff-stat-number">
+                {{ totalStock }}
+            </div>
+            <div class="staff-stat-note">
+                Available inventory units
+            </div>
+        </div>
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon">⚠️</div>
+            <div class="staff-stat-label">Low Stock</div>
+            <div class="staff-stat-number">
+                {{ lowStock }}
+            </div>
+            <div class="staff-stat-note">
+                Products with 1–5 units
+            </div>
+        </div>
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon">🚫</div>
+            <div class="staff-stat-label">Out of Stock</div>
+            <div class="staff-stat-number">
+                {{ outOfStock }}
+            </div>
+            <div class="staff-stat-note">
+                Products with zero units
+            </div>
+        </div>
+
+    </div>
+
+    {# QUICK ACTIONS #}
+    <div class="staff-section">
+
+        <div class="staff-section-heading">
+            <div>
+                <h2>Quick Actions</h2>
+                <p>
+                    Everything you need to manage your products.
+                </p>
+            </div>
+        </div>
+
+        <div class="staff-actions">
+
+            <a href="{{ path('product_new') }}" class="staff-action-card">
+                <div class="staff-action-icon">✨</div>
+                <h3>Add New Product</h3>
+                <p>
+                    Add a new NS COSMETIQ product,
+                    upload its picture, and set its price.
+                </p>
+            </a>
+
+            <a href="{{ path('product_index') }}" class="staff-action-card">
+                <div class="staff-action-icon">📦</div>
+                <h3>Manage Products</h3>
+                <p>
+                    View your product records,
+                    update stock, and manage listings.
+                </p>
+            </a>
+
+            <a href="{{ path('app_profile') }}" class="staff-action-card">
+                <div class="staff-action-icon">👤</div>
+                <h3>My Profile</h3>
+                <p>
+                    Update your personal information
+                    and manage your account.
+                </p>
+            </a>
+
+        </div>
+
+    </div>
+
+    {# RECENT PRODUCTS #}
+    <div class="staff-section">
+
+        <div class="staff-section-heading">
+            <div>
+                <h2>My Recent Products</h2>
+                <p>
+                    Your five most recently added products.
+                </p>
+            </div>
+
+            <a href="{{ path('product_index') }}" class="staff-btn staff-btn-outline">
+                View All Products
+            </a>
+        </div>
+
+        {% if recentProducts is not empty %}
+
+            <div class="table-responsive">
+
+                <table class="staff-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Date Added</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for product in recentProducts %}
+                        <tr>
+
+                            <td>
+                                <div class="staff-product-info">
+
+                                    {% if product.imageFilename %}
+                                        <img
+                                            src="{{ asset('uploads/products/' ~ product.imageFilename) }}"
+                                            alt="{{ product.name }}"
+                                            class="staff-product-image"
+                                        >
+                                    {% else %}
+                                        <div class="staff-product-placeholder">
+                                            💄
+                                        </div>
+                                    {% endif %}
+
+                                    <div>
+                                        <div class="staff-product-name">
+                                            {{ product.name }}
+                                        </div>
+
+                                        <div class="staff-product-category">
+                                            {{ product.category }}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </td>
+
+                            <td>
+                                ₱{{ product.price|number_format(2) }}
+                            </td>
+
+                            <td>
+                                {% if product.stock == 0 %}
+                                    <span class="staff-stock-badge staff-stock-out">
+                                        Out of Stock
+                                    </span>
+                                {% elseif product.stock <= 5 %}
+                                    <span class="staff-stock-badge staff-stock-low">
+                                        Low: {{ product.stock }}
+                                    </span>
+                                {% else %}
+                                    <span class="staff-stock-badge staff-stock-good">
+                                        {{ product.stock }} Available
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ product.createdAt|date('M d, Y') }}
+                            </td>
+
+                            <td>
+                                {% if is_granted('edit', product) %}
+                                    <a
+                                        href="{{ path('product_edit', {id: product.id}) }}"
+                                        class="staff-btn staff-btn-outline"
+                                    >
+                                        Edit
+                                    </a>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="staff-empty">
+                <div class="staff-empty-icon">🛍️</div>
+
+                <h3>No Products Yet</h3>
+
+                <p>
+                    You haven't added any products.
+                    Start by creating your first product.
+                </p>
+
+                <a href="{{ path('product_new') }}" class="staff-btn">
+                    + Add Your First Product
+                </a>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
