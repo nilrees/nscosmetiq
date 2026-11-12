@@ -15,7 +15,7 @@ security:
 
     firewalls:
         dev:
-            pattern: ^/(_profiler|_wdt|assets|build)/
+            pattern: ^/(_profiler|_wdt|assets|build)(/|$)
             security: false
 
         main:
@@ -39,14 +39,18 @@ security:
         - { path: ^/register$, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
 
-        # Admin
+        # Admin-only pages
         - { path: ^/admin(?:/|$), roles: ROLE_ADMIN }
 
-        # Staff
+        # Staff pages
         - { path: ^/staff(?:/|$), roles: ROLE_STAFF }
 
         # Product management
         - { path: ^/products(?:/|$), roles: ROLE_STAFF }
 
-        # Account pages
+        # Account management
         - { path: ^/profile(?:/|$), roles: ROLE_USER }
+        - { path: ^/change-password(?:/|$), roles: ROLE_USER }
+
+        # Require login for other routes
+        - { path: ^/, roles: ROLE_USER }

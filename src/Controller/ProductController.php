@@ -17,6 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_STAFF')]
 class ProductController extends AbstractController
 {
+    // ==========================================
+    // PRODUCT IMAGE UPLOAD
+    // ==========================================
+
     private function uploadProductImage(
         UploadedFile $image
     ): string {
@@ -24,8 +28,10 @@ class ProductController extends AbstractController
             . '/public/uploads/products';
 
         if (!is_dir($uploadDirectory)) {
-            if (!mkdir($uploadDirectory, 0775, true)
-                && !is_dir($uploadDirectory)) {
+            if (
+                !mkdir($uploadDirectory, 0775, true)
+                && !is_dir($uploadDirectory)
+            ) {
                 throw new \RuntimeException(
                     'Unable to create the product image directory.'
                 );
@@ -48,6 +54,10 @@ class ProductController extends AbstractController
         return $filename;
     }
 
+    // ==========================================
+    // DELETE PRODUCT IMAGE
+    // ==========================================
+
     private function deleteProductImage(?string $filename): void
     {
         if (!$filename) {
@@ -65,18 +75,44 @@ class ProductController extends AbstractController
         }
     }
 
+    // ==========================================
+    // PRODUCT LIST
+    // ADMIN: ALL PRODUCTS
+    // STAFF: OWN PRODUCTS ONLY
+    // ==========================================
+
     #[Route('', name: 'product_index', methods: ['GET'])]
     public function index(
         Request $request,
         ProductRepository $productRepository
     ): Response {
-        $search = trim((string) $request->query->get('search', ''));
-        $category = trim((string) $request->query->get('category', ''));
+        $search = trim(
+            (string) $request->query->get('search', '')
+        );
 
+        $category = trim(
+            (string) $request->query->get('category', '')
+        );
+
+        // Get products using existing search and filter.
         $products = $productRepository->findForListing(
             $search,
             $category
         );
+
+        // Staff can only see products they created.
+        // Admin can see all products.
+        if (!$this->isGranted('ROLE_ADMIN')) {
+            $staffId = $this->getUser()->getId();
+
+            $products = array_values(
+                array_filter(
+                    $products,
+                    fn (Product $product): bool =>
+                        $product->getCreatedBy()?->getId() === $staffId
+                )
+            );
+        }
 
         return $this->render('product/index.html.twig', [
             'products' => $products,
@@ -85,6 +121,10 @@ class ProductController extends AbstractController
         ]);
     }
 
+    // ==========================================
+    // CREATE PRODUCT
+    // ==========================================
+
     #[Route('/new', name: 'product_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
@@ -92,7 +132,11 @@ class ProductController extends AbstractController
     ): Response {
         $product = new Product();
 
-        $form = $this->createForm(ProductType::class, $product);
+        $form = $this->createForm(
+            ProductType::class,
+            $product
+        );
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -101,9 +145,13 @@ class ProductController extends AbstractController
 
             if ($image instanceof UploadedFile) {
                 $uploadedFilename = $this->uploadProductImage($image);
-                $product->setImageFilename($uploadedFilename);
+
+                $product->setImageFilename(
+                    $uploadedFilename
+                );
             }
 
+            // Automatically assign product ownership.
             $product->setCreatedBy($this->getUser());
 
             try {
@@ -128,15 +176,26 @@ class ProductController extends AbstractController
         ]);
     }
 
+    // ==========================================
+    // EDIT PRODUCT
+    // ADMIN: ANY PRODUCT
+    // STAFF: OWN PRODUCT ONLY
+    // ==========================================
+
     #[Route('/{id}/edit', name: 'product_edit', methods: ['GET', 'POST'])]
     public function edit(
         Product $product,
         Request $request,
         EntityManagerInterface $entityManager
     ): Response {
+        // ProductVoter checks ownership and role.
         $this->denyAccessUnlessGranted('edit', $product);
 
-        $form = $this->createForm(ProductType::class, $product);
+        $form = $this->createForm(
+            ProductType::class,
+            $product
+        );
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -147,6 +206,7 @@ class ProductController extends AbstractController
 
             if ($image instanceof UploadedFile) {
                 $newFilename = $this->uploadProductImage($image);
+
                 $product->setImageFilename($newFilename);
             }
 
@@ -157,6 +217,7 @@ class ProductController extends AbstractController
                 throw $exception;
             }
 
+            // Delete old image after successful update.
             if ($newFilename !== null) {
                 $this->deleteProductImage($oldFilename);
             }
@@ -175,30 +236,45 @@ class ProductController extends AbstractController
         ]);
     }
 
+    // ==========================================
+    // DELETE PRODUCT
+    // ADMIN: ANY PRODUCT
+    // STAFF: OWN PRODUCT ONLY
+    // ==========================================
+
     #[Route('/{id}/delete', name: 'product_delete', methods: ['POST'])]
     public function delete(
         Product $product,
         Request $request,
         EntityManagerInterface $entityManager
     ): Response {
+        // ProductVoter checks ownership and role.
         $this->denyAccessUnlessGranted('delete', $product);
 
-        if ($this->isCsrfTokenValid(
+        if (!$this->isCsrfTokenValid(
             'delete-product-' . $product->getId(),
-            $request->request->get('_token')
+            (string) $request->request->get('_token')
         )) {
-            $filename = $product->getImageFilename();
-
-            $entityManager->remove($product);
-            $entityManager->flush();
-
-            $this->deleteProductImage($filename);
-
             $this->addFlash(
-                'success',
-                'Product deleted successfully.'
+                'danger',
+                'Invalid security token. Product was not deleted.'
             );
+
+            return $this->redirectToRoute('product_index');
         }
+
+        $filename = $product->getImageFilename();
+
+        $entityManager->remove($product);
+        $entityManager->flush();
+
+        // Remove image after successful database deletion.
+        $this->deleteProductImage($filename);
+
+        $this->addFlash(
+            'success',
+            'Product deleted successfully.'
+        );
 
         return $this->redirectToRoute('product_index');
     }

@@ -15,43 +15,55 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
+    // PRODUCT NAME
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Product name is required.')]
     #[Assert\Length(
         min: 3,
         max: 100,
-        minMessage: 'Name must be at least {{ limit }} characters.'
+        minMessage: 'Product name must be at least {{ limit }} characters.',
+        maxMessage: 'Product name cannot exceed {{ limit }} characters.'
     )]
     private ?string $name = null;
 
+    // DESCRIPTION
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\Length(
         max: 1000,
-        maxMessage: 'Description is too long (max {{ limit }} characters).'
+        maxMessage: 'Description cannot exceed {{ limit }} characters.'
     )]
     private ?string $description = null;
 
+    // CATEGORY
     #[ORM\Column(length: 100)]
-    #[Assert\NotBlank(message: 'Category is required.')]
+    #[Assert\NotBlank(message: 'Product category is required.')]
+    #[Assert\Length(
+        max: 100,
+        maxMessage: 'Category cannot exceed {{ limit }} characters.'
+    )]
     private ?string $category = null;
 
-    // Stores the uploaded product image filename
+    // PRODUCT IMAGE
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageFilename = null;
 
+    // PRODUCT PRICE
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotBlank(message: 'Price is required.')]
-    #[Assert\Positive(message: 'Price must be greater than zero.')]
+    #[Assert\NotNull(message: 'Product price is required.')]
+    #[Assert\Positive(message: 'Product price must be greater than zero.')]
     private ?string $price = null;
 
+    // STOCK QUANTITY
     #[ORM\Column]
-    #[Assert\NotNull(message: 'Stock is required.')]
-    #[Assert\PositiveOrZero(message: 'Stock cannot be negative.')]
+    #[Assert\NotNull(message: 'Stock quantity is required.')]
+    #[Assert\PositiveOrZero(message: 'Stock quantity cannot be negative.')]
     private ?int $stock = null;
 
+    // DATE CREATED
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
+    // PRODUCT OWNER
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $createdBy = null;

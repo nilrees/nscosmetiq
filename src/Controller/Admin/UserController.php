@@ -68,9 +68,14 @@ class UserController extends AbstractController
     public function edit(
         User $user,
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        UserRepository $userRepository
     ): Response {
         $isSelf = $user->getId() === $this->getUser()->getId();
+
+        // Save original role before the form changes the entity.
+        $originalRoles = $user->getRoles();
+        $wasAdmin = in_array('ROLE_ADMIN', $originalRoles, true);
 
         $form = $this->createForm(UserType::class, $user, [
             'is_self' => $isSelf,
@@ -79,9 +84,48 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $isAdminNow = in_array(
+                'ROLE_ADMIN',
+                $user->getRoles(),
+                true
+            );
+
+            // Prevent changing your own Admin role.
+            if ($isSelf && $wasAdmin && !$isAdminNow) {
+                $user->setRoles($originalRoles);
+
+                $this->addFlash(
+                    'danger',
+                    'You cannot remove your own Admin role.'
+                );
+
+                return $this->redirectToRoute('admin_user_index');
+            }
+
+            // Prevent removing the last active Admin.
+            if (
+                $wasAdmin &&
+                !$isAdminNow &&
+                $this->countActiveAdmins($userRepository) <= 1 &&
+                $user->isActive()
+            ) {
+                $user->setRoles($originalRoles);
+
+                $this->addFlash(
+                    'danger',
+                    'You cannot remove the last active Admin account.'
+                );
+
+                return $this->redirectToRoute('admin_user_index');
+            }
+
             $em->flush();
 
-            $this->addFlash('success', 'User updated successfully.');
+            $this->addFlash(
+                'success',
+                'User updated successfully.'
+            );
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -100,7 +144,7 @@ class UserController extends AbstractController
         EntityManagerInterface $em,
         UserRepository $userRepository
     ): Response {
-        // Verify CSRF token.
+
         if (!$this->isCsrfTokenValid(
             'change-role-' . $user->getId(),
             (string) $request->request->get('_token')
@@ -110,7 +154,6 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
-        // Only these roles can be assigned.
         $role = (string) $request->request->get('role');
 
         if (!in_array($role, ['ROLE_ADMIN', 'ROLE_STAFF'], true)) {
@@ -119,7 +162,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
-        // Prevent the logged-in Admin from changing their own role.
+        // Prevent changing your own role.
         if ($user->getId() === $this->getUser()->getId()) {
             $this->addFlash(
                 'danger',
@@ -129,33 +172,20 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
-        // Protect the last Admin account.
-        $isCurrentlyAdmin = in_array(
-            'ROLE_ADMIN',
-            $user->getRoles(),
-            true
-        );
+        // Prevent demoting the last active Admin.
+        if (
+            $user->isActive() &&
+            $this->isLastActiveAdmin($user, $userRepository) &&
+            $role !== 'ROLE_ADMIN'
+        ) {
+            $this->addFlash(
+                'danger',
+                'You cannot remove the last active Admin account.'
+            );
 
-        if ($isCurrentlyAdmin && $role !== 'ROLE_ADMIN') {
-            $adminCount = 0;
-
-            foreach ($userRepository->findAll() as $account) {
-                if (in_array('ROLE_ADMIN', $account->getRoles(), true)) {
-                    $adminCount++;
-                }
-            }
-
-            if ($adminCount <= 1) {
-                $this->addFlash(
-                    'danger',
-                    'You cannot remove the last Admin account.'
-                );
-
-                return $this->redirectToRoute('admin_user_index');
-            }
+            return $this->redirectToRoute('admin_user_index');
         }
 
-        // Save the new role.
         $user->setRoles([$role]);
         $em->flush();
 
@@ -232,6 +262,7 @@ class UserController extends AbstractController
         EntityManagerInterface $em,
         UserRepository $userRepository
     ): Response {
+
         if (!$this->isCsrfTokenValid(
             'toggle' . $user->getId(),
             (string) $request->request->get('_token')
@@ -252,7 +283,7 @@ class UserController extends AbstractController
         }
 
         // Prevent disabling the last active Admin.
-        if ($user->isActive() && $this->isLastActiveAdmin($user, $userRepository)) {
+        if ($this->isLastActiveAdmin($user, $userRepository)) {
             $this->addFlash(
                 'danger',
                 'You cannot disable the last active Admin account.'
@@ -266,7 +297,9 @@ class UserController extends AbstractController
 
         $this->addFlash(
             'success',
-            $user->isActive() ? 'Account enabled.' : 'Account disabled.'
+            $user->isActive()
+                ? 'Account enabled.'
+                : 'Account disabled.'
         );
 
         return $this->redirectToRoute('admin_user_index');
@@ -279,6 +312,7 @@ class UserController extends AbstractController
         EntityManagerInterface $em,
         UserRepository $userRepository
     ): Response {
+
         if (!$this->isCsrfTokenValid(
             'delete' . $user->getId(),
             (string) $request->request->get('_token')
@@ -312,7 +346,10 @@ class UserController extends AbstractController
             $em->remove($user);
             $em->flush();
 
-            $this->addFlash('success', 'User deleted successfully.');
+            $this->addFlash(
+                'success',
+                'User deleted successfully.'
+            );
         } catch (ForeignKeyConstraintViolationException) {
             $this->addFlash(
                 'danger',
@@ -321,6 +358,26 @@ class UserController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_user_index');
+    }
+
+    /**
+     * Count all active Admin accounts.
+     */
+    private function countActiveAdmins(
+        UserRepository $userRepository
+    ): int {
+        $count = 0;
+
+        foreach ($userRepository->findAll() as $account) {
+            if (
+                $account->isActive() &&
+                in_array('ROLE_ADMIN', $account->getRoles(), true)
+            ) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     /**
@@ -337,17 +394,6 @@ class UserController extends AbstractController
             return false;
         }
 
-        $activeAdminCount = 0;
-
-        foreach ($userRepository->findAll() as $account) {
-            if (
-                $account->isActive() &&
-                in_array('ROLE_ADMIN', $account->getRoles(), true)
-            ) {
-                $activeAdminCount++;
-            }
-        }
-
-        return $activeAdminCount <= 1;
+        return $this->countActiveAdmins($userRepository) <= 1;
     }
 }

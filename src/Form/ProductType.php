@@ -12,19 +12,35 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ProductType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
-    {
+    public function buildForm(
+        FormBuilderInterface $builder,
+        array $options
+    ): void {
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Product Name',
+                'constraints' => [
+                    new NotBlank(
+                        message: 'Please enter a product name.'
+                    ),
+                    new Length(
+                        max: 150,
+                        maxMessage: 'Product name cannot exceed {{ limit }} characters.'
+                    ),
+                ],
                 'attr' => [
                     'placeholder' => 'Enter product name',
+                    'maxlength' => 150,
                     'class' => 'form-control',
                 ],
             ])
+
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => false,
@@ -34,28 +50,65 @@ class ProductType extends AbstractType
                     'class' => 'form-control',
                 ],
             ])
+
             ->add('category', TextType::class, [
                 'label' => 'Category',
+                'constraints' => [
+                    new NotBlank(
+                        message: 'Please enter a product category.'
+                    ),
+                    new Length(
+                        max: 100,
+                        maxMessage: 'Category cannot exceed {{ limit }} characters.'
+                    ),
+                ],
                 'attr' => [
                     'placeholder' => 'e.g. Skincare, Makeup, Lip Products',
+                    'maxlength' => 100,
                     'class' => 'form-control',
                 ],
             ])
+
             ->add('price', MoneyType::class, [
                 'label' => 'Price',
                 'currency' => 'PHP',
                 'scale' => 2,
-                'attr' => [
-                    'class' => 'form-control',
+                'constraints' => [
+                    new NotBlank(
+                        message: 'Please enter a product price.'
+                    ),
+                    new GreaterThanOrEqual(
+                        value: 0,
+                        message: 'Price cannot be negative.'
+                    ),
                 ],
-            ])
-            ->add('stock', IntegerType::class, [
-                'label' => 'Stock Quantity',
                 'attr' => [
                     'min' => 0,
+                    'step' => '0.01',
+                    'placeholder' => '0.00',
                     'class' => 'form-control',
                 ],
             ])
+
+            ->add('stock', IntegerType::class, [
+                'label' => 'Stock Quantity',
+                'constraints' => [
+                    new NotBlank(
+                        message: 'Please enter the stock quantity.'
+                    ),
+                    new GreaterThanOrEqual(
+                        value: 0,
+                        message: 'Stock quantity cannot be negative.'
+                    ),
+                ],
+                'attr' => [
+                    'min' => 0,
+                    'step' => 1,
+                    'placeholder' => 'Enter stock quantity',
+                    'class' => 'form-control',
+                ],
+            ])
+
             ->add('imageFile', FileType::class, [
                 'label' => 'Product Image (JPG, PNG, WebP)',
                 'mapped' => false,
@@ -68,6 +121,7 @@ class ProductType extends AbstractType
                             'image/png',
                             'image/webp',
                         ],
+                        maxSizeMessage: 'Image must not exceed 5 MB.',
                         mimeTypesMessage: 'Please upload a valid JPG, PNG, or WebP image.'
                     ),
                 ],
@@ -79,8 +133,9 @@ class ProductType extends AbstractType
             ]);
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
+    public function configureOptions(
+        OptionsResolver $resolver
+    ): void {
         $resolver->setDefaults([
             'data_class' => Product::class,
         ]);

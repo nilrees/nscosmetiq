@@ -4,11 +4,16 @@
 {% block title %}Staff Dashboard | NS COSMETIQ{% endblock %}
 
 {% block stylesheets %}
+{{ parent() }}
+
 <style>
     .staff-dashboard {
         font-family: 'Raleway', sans-serif;
         color: #49332D;
+        padding: 20px 5px 50px;
     }
+
+    /* WELCOME BANNER */
 
     .staff-welcome {
         background: linear-gradient(120deg, #FFF0E9, #F9E3DC);
@@ -54,6 +59,8 @@
         letter-spacing: 1px;
     }
 
+    /* STATISTICS */
+
     .staff-stats {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -86,6 +93,18 @@
         margin-bottom: 18px;
     }
 
+    .staff-stat-icon.stock {
+        background: #E6F6EB;
+    }
+
+    .staff-stat-icon.low {
+        background: #FFF2D9;
+    }
+
+    .staff-stat-icon.out {
+        background: #FCE7E9;
+    }
+
     .staff-stat-label {
         color: #92756C;
         font-size: 12px;
@@ -104,6 +123,8 @@
         font-size: 11px;
         margin-top: 9px;
     }
+
+    /* SECTIONS */
 
     .staff-section {
         background: #FFFFFF;
@@ -134,9 +155,11 @@
         margin: 6px 0 0;
     }
 
+    /* QUICK ACTIONS */
+
     .staff-actions {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
     }
 
@@ -176,6 +199,8 @@
         margin: 0;
     }
 
+    /* PRODUCT TABLE */
+
     .staff-table {
         width: 100%;
         border-collapse: collapse;
@@ -202,6 +227,10 @@
         font-size: 13px;
     }
 
+    .staff-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
     .staff-product-info {
         display: flex;
         align-items: center;
@@ -215,6 +244,7 @@
         border-radius: 11px;
         background: #FFF0E9;
         border: 1px solid #F0DDD5;
+        flex-shrink: 0;
     }
 
     .staff-product-placeholder {
@@ -239,12 +269,15 @@
         margin-top: 4px;
     }
 
+    /* STOCK BADGES */
+
     .staff-stock-badge {
         display: inline-block;
         padding: 7px 11px;
         border-radius: 20px;
         font-size: 11px;
         font-weight: 800;
+        white-space: nowrap;
     }
 
     .staff-stock-good {
@@ -262,6 +295,8 @@
         color: #AD4350;
     }
 
+    /* BUTTONS */
+
     .staff-btn {
         display: inline-flex;
         align-items: center;
@@ -275,6 +310,7 @@
         font-weight: 800;
         border: none;
         transition: .2s ease;
+        cursor: pointer;
     }
 
     .staff-btn:hover {
@@ -293,6 +329,18 @@
         color: #49332D;
     }
 
+    .staff-btn-delete {
+        background: #AF4652;
+        color: white;
+    }
+
+    .staff-btn-delete:hover {
+        background: #913642;
+        color: white;
+    }
+
+    /* EMPTY STATE */
+
     .staff-empty {
         text-align: center;
         padding: 45px 20px;
@@ -310,6 +358,8 @@
         font-weight: 800;
     }
 
+    /* RESPONSIVE DESIGN */
+
     @media (max-width: 1100px) {
         .staff-stats {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -317,8 +367,8 @@
     }
 
     @media (max-width: 768px) {
-        .staff-actions {
-            grid-template-columns: 1fr;
+        .staff-dashboard {
+            padding: 15px 0 35px;
         }
 
         .staff-welcome {
@@ -328,11 +378,23 @@
         .staff-section {
             padding: 18px;
         }
+
+        .staff-actions {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 480px) {
         .staff-stats {
             grid-template-columns: 1fr;
+        }
+
+        .staff-welcome h1 {
+            font-size: 25px;
+        }
+
+        .staff-btn {
+            padding: 9px 12px;
         }
     }
 </style>
@@ -343,13 +405,17 @@
 <div class="staff-dashboard">
 
     {# WELCOME BANNER #}
+
     <div class="staff-welcome">
+
         <div>
             <div class="staff-eyebrow">
                 NS COSMETIQ / STAFF WORKSPACE
             </div>
 
-            <h1>Welcome back, {{ app.user.fullName }}!</h1>
+            <h1>
+                Welcome back, {{ app.user.fullName }}!
+            </h1>
 
             <p>
                 Here's an overview of your products,
@@ -360,50 +426,72 @@
         <span class="staff-role-badge">
             ✦ STAFF ACCOUNT
         </span>
+
     </div>
 
-    {# STATISTICS #}
+    {# DASHBOARD STATISTICS #}
+
     <div class="staff-stats">
 
         <div class="staff-stat-card">
             <div class="staff-stat-icon">📦</div>
-            <div class="staff-stat-label">My Products</div>
+
+            <div class="staff-stat-label">
+                My Products
+            </div>
+
             <div class="staff-stat-number">
                 {{ totalProducts }}
             </div>
+
             <div class="staff-stat-note">
                 Products you created
             </div>
         </div>
 
         <div class="staff-stat-card">
-            <div class="staff-stat-icon">🛍️</div>
-            <div class="staff-stat-label">Total Stock</div>
+            <div class="staff-stat-icon stock">🛍️</div>
+
+            <div class="staff-stat-label">
+                Total Stock
+            </div>
+
             <div class="staff-stat-number">
                 {{ totalStock }}
             </div>
+
             <div class="staff-stat-note">
                 Available inventory units
             </div>
         </div>
 
         <div class="staff-stat-card">
-            <div class="staff-stat-icon">⚠️</div>
-            <div class="staff-stat-label">Low Stock</div>
+            <div class="staff-stat-icon low">⚠️</div>
+
+            <div class="staff-stat-label">
+                Low Stock
+            </div>
+
             <div class="staff-stat-number">
                 {{ lowStock }}
             </div>
+
             <div class="staff-stat-note">
                 Products with 1–5 units
             </div>
         </div>
 
         <div class="staff-stat-card">
-            <div class="staff-stat-icon">🚫</div>
-            <div class="staff-stat-label">Out of Stock</div>
+            <div class="staff-stat-icon out">🚫</div>
+
+            <div class="staff-stat-label">
+                Out of Stock
+            </div>
+
             <div class="staff-stat-number">
                 {{ outOfStock }}
             </div>
+
             <div class="staff-stat-note">
                 Products with zero units
             </div>
@@ -412,11 +500,13 @@
     </div>
 
     {# QUICK ACTIONS #}
+
     <div class="staff-section">
 
         <div class="staff-section-heading">
             <div>
                 <h2>Quick Actions</h2>
+
                 <p>
                     Everything you need to manage your products.
                 </p>
@@ -425,31 +515,60 @@
 
         <div class="staff-actions">
 
-            <a href="{{ path('product_new') }}" class="staff-action-card">
+            <a href="{{ path('product_new') }}"
+               class="staff-action-card">
+
                 <div class="staff-action-icon">✨</div>
+
                 <h3>Add New Product</h3>
+
                 <p>
                     Add a new NS COSMETIQ product,
                     upload its picture, and set its price.
                 </p>
+
             </a>
 
-            <a href="{{ path('product_index') }}" class="staff-action-card">
+            <a href="{{ path('product_index') }}"
+               class="staff-action-card">
+
                 <div class="staff-action-icon">📦</div>
-                <h3>Manage Products</h3>
+
+                <h3>Manage My Products</h3>
+
                 <p>
-                    View your product records,
+                    View your own product records,
                     update stock, and manage listings.
                 </p>
+
             </a>
 
-            <a href="{{ path('app_profile') }}" class="staff-action-card">
+            <a href="{{ path('app_profile') }}"
+               class="staff-action-card">
+
                 <div class="staff-action-icon">👤</div>
+
                 <h3>My Profile</h3>
+
                 <p>
-                    Update your personal information
-                    and manage your account.
+                    View and manage your personal
+                    account information.
                 </p>
+
+            </a>
+
+            <a href="{{ path('app_change_password') }}"
+               class="staff-action-card">
+
+                <div class="staff-action-icon">🔐</div>
+
+                <h3>Change Password</h3>
+
+                <p>
+                    Keep your NS COSMETIQ staff account
+                    secure by updating your password.
+                </p>
+
             </a>
 
         </div>
@@ -457,19 +576,24 @@
     </div>
 
     {# RECENT PRODUCTS #}
+
     <div class="staff-section">
 
         <div class="staff-section-heading">
+
             <div>
                 <h2>My Recent Products</h2>
+
                 <p>
                     Your five most recently added products.
                 </p>
             </div>
 
-            <a href="{{ path('product_index') }}" class="staff-btn staff-btn-outline">
+            <a href="{{ path('product_index') }}"
+               class="staff-btn staff-btn-outline">
                 View All Products
             </a>
+
         </div>
 
         {% if recentProducts is not empty %}
@@ -477,18 +601,21 @@
             <div class="table-responsive">
 
                 <table class="staff-table">
+
                     <thead>
                         <tr>
                             <th>Product</th>
                             <th>Price</th>
                             <th>Stock</th>
                             <th>Date Added</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
+
                     {% for product in recentProducts %}
+
                         <tr>
 
                             <td>
@@ -499,6 +626,7 @@
                                             src="{{ asset('uploads/products/' ~ product.imageFilename) }}"
                                             alt="{{ product.name }}"
                                             class="staff-product-image"
+                                            loading="lazy"
                                         >
                                     {% else %}
                                         <div class="staff-product-placeholder">
@@ -544,19 +672,54 @@
                             </td>
 
                             <td>
-                                {% if is_granted('edit', product) %}
-                                    <a
-                                        href="{{ path('product_edit', {id: product.id}) }}"
-                                        class="staff-btn staff-btn-outline"
-                                    >
-                                        Edit
-                                    </a>
-                                {% endif %}
+                                <div class="d-flex flex-wrap gap-2">
+
+                                    {% if is_granted('edit', product) %}
+                                        <a
+                                            href="{{ path('product_edit', {
+                                                id: product.id
+                                            }) }}"
+                                            class="staff-btn staff-btn-outline"
+                                        >
+                                            Edit
+                                        </a>
+                                    {% endif %}
+
+                                    {% if is_granted('delete', product) %}
+                                        <form
+                                            method="post"
+                                            action="{{ path('product_delete', {
+                                                id: product.id
+                                            }) }}"
+                                            onsubmit="return confirm('Are you sure you want to delete this product?');"
+                                            class="m-0"
+                                        >
+
+                                            <input
+                                                type="hidden"
+                                                name="_token"
+                                                value="{{ csrf_token('delete-product-' ~ product.id) }}"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="staff-btn staff-btn-delete"
+                                            >
+                                                Delete
+                                            </button>
+
+                                        </form>
+                                    {% endif %}
+
+                                </div>
                             </td>
 
                         </tr>
+
                     {% endfor %}
+
                     </tbody>
+
                 </table>
 
             </div>
@@ -564,6 +727,7 @@
         {% else %}
 
             <div class="staff-empty">
+
                 <div class="staff-empty-icon">🛍️</div>
 
                 <h3>No Products Yet</h3>
@@ -573,9 +737,11 @@
                     Start by creating your first product.
                 </p>
 
-                <a href="{{ path('product_new') }}" class="staff-btn">
+                <a href="{{ path('product_new') }}"
+                   class="staff-btn">
                     + Add Your First Product
                 </a>
+
             </div>
 
         {% endif %}

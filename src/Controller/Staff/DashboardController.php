@@ -13,12 +13,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/staff/dashboard', name: 'staff_dashboard', methods: ['GET'])]
-    public function index(ProductRepository $productRepository): Response
-    {
+    public function index(
+        ProductRepository $productRepository
+    ): Response {
         /** @var User $staff */
         $staff = $this->getUser();
 
-        // Only retrieve products created by the logged-in staff.
+        // Retrieve products created by the logged-in user.
         $products = $productRepository->findBy(
             ['createdBy' => $staff],
             ['createdAt' => 'DESC']
@@ -30,7 +31,7 @@ class DashboardController extends AbstractController
         $outOfStock = 0;
 
         foreach ($products as $product) {
-            $stock = $product->getStock();
+            $stock = $product->getStock() ?? 0;
 
             $totalStock += $stock;
 
@@ -46,6 +47,7 @@ class DashboardController extends AbstractController
 
         return $this->render('staff/dashboard.html.twig', [
             'totalProducts' => $totalProducts,
+            'totalRecords' => $totalProducts,
             'totalStock' => $totalStock,
             'lowStock' => $lowStock,
             'outOfStock' => $outOfStock,

@@ -272,6 +272,12 @@
         </div>
     {% endfor %}
 
+    {% for message in app.flashes('danger') %}
+    <div class="alert alert-danger rounded-3" role="alert">
+        {{ message }}
+    </div>
+{% endfor %}
+
     <div class="ns-filter-card">
         <form method="get" action="{{ path('product_index') }}" class="row g-3 align-items-end">
 
@@ -373,7 +379,7 @@
                             </td>
 
                             <td>
-                                {{ product.createdBy.fullName }}
+                                {{ product.createdBy ? product.createdBy.fullName : 'Unknown' }}
                             </td>
 
                             <td>

@@ -12,30 +12,69 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
 {
-    #[Route('/admin/dashboard', name: 'admin_dashboard')]
+    #[Route('/admin/dashboard', name: 'admin_dashboard', methods: ['GET'])]
     public function index(
         UserRepository $userRepository,
         ProductRepository $productRepository
     ): Response {
+        // Retrieve all registered users.
         $users = $userRepository->findAll();
+
+        $totalUsers = count($users);
         $totalStaff = 0;
+        $totalAdmins = 0;
+        $activeUsers = 0;
 
         foreach ($users as $user) {
-            if (in_array('ROLE_STAFF', $user->getRoles(), true)
-                && !in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            if ($user->isActive()) {
+                $activeUsers++;
+            }
+
+            if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+                $totalAdmins++;
+            } elseif (in_array('ROLE_STAFF', $user->getRoles(), true)) {
                 $totalStaff++;
             }
         }
 
+        // Retrieve all products for inventory statistics.
+        $products = $productRepository->findAll();
+
+        $totalRecords = count($products);
+        $totalStock = 0;
+        $lowStock = 0;
+        $outOfStock = 0;
+
+        foreach ($products as $product) {
+            $stock = $product->getStock() ?? 0;
+
+            $totalStock += $stock;
+
+            if ($stock === 0) {
+                $outOfStock++;
+            } elseif ($stock <= 5) {
+                $lowStock++;
+            }
+        }
+
+        // Retrieve the five newest products.
+        $recentProducts = $productRepository->findBy(
+            [],
+            ['createdAt' => 'DESC'],
+            5
+        );
+
         return $this->render('admin/dashboard.html.twig', [
-            'totalUsers' => count($users),
+            'totalUsers' => $totalUsers,
             'totalStaff' => $totalStaff,
-            'totalRecords' => $productRepository->count([]),
-            'recentProducts' => $productRepository->findBy(
-                [],
-                ['id' => 'DESC'],
-                5
-            ),
+            'totalAdmins' => $totalAdmins,
+            'activeUsers' => $activeUsers,
+            'totalRecords' => $totalRecords,
+            'totalProducts' => $totalRecords,
+            'totalStock' => $totalStock,
+            'lowStock' => $lowStock,
+            'outOfStock' => $outOfStock,
+            'recentProducts' => $recentProducts,
         ]);
     }
 }
