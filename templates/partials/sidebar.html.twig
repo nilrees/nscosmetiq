@@ -18,6 +18,8 @@
         </a>
     </div>
 
+    {% set currentRoute = app.request.attributes.get('_route')|default('') %}
+
     {% if is_granted('ROLE_ADMIN') %}
 
         {# =========================
@@ -30,7 +32,7 @@
 
             {# DASHBOARD #}
             <a
-                class="nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}"
+                class="nav-link {{ currentRoute == 'admin_dashboard' ? 'active' : '' }}"
                 href="{{ path('admin_dashboard') }}"
             >
                 Dashboard
@@ -38,15 +40,23 @@
 
             {# MANAGE PRODUCTS #}
             <a
-                class="nav-link {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
+                class="nav-link {{ currentRoute starts with 'product_' ? 'active' : '' }}"
                 href="{{ path('product_index') }}"
             >
                 Manage Products
             </a>
 
+            {# MANAGE ORDERS #}
+            <a
+                class="nav-link {{ currentRoute starts with 'staff_order' ? 'active' : '' }}"
+                href="{{ path('staff_orders') }}"
+            >
+                Manage Orders
+            </a>
+
             {# MANAGE USERS #}
             <a
-                class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_user_' %}active{% endif %}"
+                class="nav-link {{ currentRoute starts with 'admin_user_' ? 'active' : '' }}"
                 href="{{ path('admin_user_index') }}"
             >
                 Manage Users
@@ -66,7 +76,7 @@
 
             {# STAFF DASHBOARD #}
             <a
-                class="nav-link {% if app.request.attributes.get('_route') == 'staff_dashboard' %}active{% endif %}"
+                class="nav-link {{ currentRoute == 'staff_dashboard' ? 'active' : '' }}"
                 href="{{ path('staff_dashboard') }}"
             >
                 Dashboard
@@ -74,10 +84,18 @@
 
             {# MY PRODUCTS #}
             <a
-                class="nav-link {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
+                class="nav-link {{ currentRoute starts with 'product_' ? 'active' : '' }}"
                 href="{{ path('product_index') }}"
             >
                 My Products
+            </a>
+
+            {# MANAGE ORDERS #}
+            <a
+                class="nav-link {{ currentRoute starts with 'staff_order' ? 'active' : '' }}"
+                href="{{ path('staff_orders') }}"
+            >
+                Manage Orders
             </a>
 
         </nav>
@@ -94,7 +112,7 @@
 
         {# MY PROFILE #}
         <a
-            class="nav-link {% if app.request.attributes.get('_route') == 'app_profile' %}active{% endif %}"
+            class="nav-link {{ currentRoute == 'app_profile' ? 'active' : '' }}"
             href="{{ path('app_profile') }}"
         >
             My Profile
@@ -102,7 +120,7 @@
 
         {# CHANGE PASSWORD #}
         <a
-            class="nav-link {% if app.request.attributes.get('_route') == 'app_change_password' %}active{% endif %}"
+            class="nav-link {{ currentRoute == 'app_change_password' ? 'active' : '' }}"
             href="{{ path('app_change_password') }}"
         >
             Change Password
