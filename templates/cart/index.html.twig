@@ -1,88 +1,138 @@
-
 {% extends 'base.html.twig' %}
 
 {% block title %}Shopping Cart | NS COSMETIQ{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .ns-cart-page { --rose:#C0603F; --brown:#49332D; --muted:#8A7169; --cream:#FFF8F5; --blush:#F9E3DC; color:var(--brown); background:linear-gradient(180deg,#FFF8F5 0%,#fffdfb 100%); min-height:75vh; padding:55px 20px 90px; }
+        .ns-cart-wrap { max-width:1160px; margin:0 auto; }
+        .ns-cart-kicker { color:var(--rose); font-size:12px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:12px; }
+        .ns-cart-title { font-family:Georgia,serif; font-size:clamp(34px,4vw,52px); font-weight:400; margin:0 0 10px; }
+        .ns-cart-subtitle { color:var(--muted); margin:0 0 32px; font-size:14px; }
+        .ns-cart-layout { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(290px,1fr); gap:28px; align-items:start; }
+        .ns-cart-items, .ns-cart-summary, .ns-cart-empty { background:#fff; border:1px solid #f0e2dc; border-radius:20px; box-shadow:0 12px 35px rgba(73,51,45,.045); }
+        .ns-cart-items { padding:10px 26px; }
+        .ns-cart-item { display:grid; grid-template-columns:105px minmax(0,1fr); gap:22px; padding:24px 0; align-items:start; }
+        .ns-cart-item + .ns-cart-item { border-top:1px solid #f2e8e3; }
+        .ns-cart-image { width:105px; height:120px; object-fit:cover; background:#F9E3DC; border-radius:13px; display:block; }
+        .ns-cart-image-placeholder { width:105px; height:120px; border-radius:13px; background:#F9E3DC; display:flex; justify-content:center; align-items:center; color:#C0603F; font:italic 35px Georgia,serif; }
+        .ns-cart-item-heading { display:flex; justify-content:space-between; align-items:start; gap:15px; }
+        .ns-cart-item-name { font-size:17px; font-weight:800; margin:0 0 6px; }
+        .ns-cart-category { color:var(--rose); font-size:11px; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin:0 0 8px; }
+        .ns-cart-unit-price { color:var(--muted); font-size:13px; }
+        .ns-cart-line-total { color:var(--rose); font-size:17px; font-weight:800; white-space:nowrap; }
+        .ns-cart-controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:18px; }
+        .ns-cart-update { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0; }
+        .ns-cart-update label { color:var(--muted); font-size:12px; font-weight:700; }
+        .ns-cart-qty { width:68px; height:39px; border:1px solid #e8d7d0; border-radius:9px; text-align:center; color:var(--brown); background:#fff; }
+        .ns-cart-btn { border:0; border-radius:10px; padding:11px 16px; font-size:12px; font-weight:800; cursor:pointer; transition:background .2s,transform .2s; }
+        .ns-cart-btn:hover { transform:translateY(-1px); }
+        .ns-cart-btn-update { background:#F9E3DC; color:var(--brown); }
+        .ns-cart-btn-update:hover { background:#F1CFC2; }
+        .ns-cart-btn-remove { background:transparent; color:#a54e47; border:1px solid #edcbc3; }
+        .ns-cart-btn-remove:hover { background:#fff2ef; }
+        .ns-cart-summary { padding:29px; position:sticky; top:25px; }
+        .ns-cart-summary h2 { font:400 27px Georgia,serif; margin:0 0 24px; }
+        .ns-cart-summary-row { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:14px; margin-bottom:17px; }
+        .ns-cart-summary-row strong { color:var(--brown); }
+        .ns-cart-summary-total { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:22px 0; border-top:1px solid #eee1da; font-weight:800; }
+        .ns-cart-summary-total strong { font-size:25px; color:var(--rose); }
+        .ns-cart-checkout { display:block; text-align:center; padding:15px 20px; background:var(--rose); border-radius:11px; color:white !important; font-weight:800; font-size:14px; text-decoration:none; transition:background .2s; }
+        .ns-cart-checkout:hover { background:#a64d31; }
+        .ns-cart-continue { display:block; text-align:center; margin-top:18px; color:var(--brown); font-weight:700; font-size:13px; text-decoration:none; }
+        .ns-cart-continue:hover { color:var(--rose); }
+        .ns-cart-note { margin:20px 0 0; font-size:12px; color:var(--muted); line-height:1.7; text-align:center; }
+        .ns-cart-empty { padding:70px 25px; text-align:center; }
+        .ns-cart-empty-mark { font:italic 66px Georgia,serif; color:#d9a99b; margin-bottom:10px; }
+        .ns-cart-empty h2 { font:400 30px Georgia,serif; margin-bottom:12px; }
+        .ns-cart-empty p { color:var(--muted); margin-bottom:25px; }
+        .ns-cart-empty .ns-cart-checkout { display:inline-block; min-width:210px; }
+        .ns-cart-alert { border-radius:11px; padding:13px 17px; margin:0 0 15px; font-size:14px; }
+        .ns-cart-alert-success { background:#e1f1e8; color:#245d44; }
+        .ns-cart-alert-error { background:#fff0ed; color:#a13d35; }
+        @media(max-width:850px) { .ns-cart-layout { grid-template-columns:1fr; } .ns-cart-summary { position:static; } }
+        @media(max-width:540px) { .ns-cart-page { padding:35px 12px 60px; } .ns-cart-items { padding:5px 15px; } .ns-cart-item { grid-template-columns:80px minmax(0,1fr); gap:13px; } .ns-cart-image,.ns-cart-image-placeholder { width:80px; height:95px; } .ns-cart-item-heading { flex-direction:column; gap:4px; } .ns-cart-summary { padding:22px; } }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div style="max-width: 1000px; margin: 40px auto; padding: 20px;">
+<main class="ns-cart-page">
+    <div class="ns-cart-wrap">
+        <div class="ns-cart-kicker">YOUR BEAUTY BAG</div>
+        <h1 class="ns-cart-title">My Shopping Cart</h1>
+        <p class="ns-cart-subtitle">Your favorite beauty essentials, all in one place.</p>
 
-    <h1>My Shopping Cart</h1>
+        {% for message in app.flashes('success') %}
+            <div class="ns-cart-alert ns-cart-alert-success" role="status">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="ns-cart-alert ns-cart-alert-error" role="alert">{{ message }}</div>
+        {% endfor %}
 
-    {% for message in app.flashes('success') %}
-        <p style="color: green;">{{ message }}</p>
-    {% endfor %}
+        {% if items is empty %}
+            <div class="ns-cart-empty">
+                <div class="ns-cart-empty-mark">NS</div>
+                <h2>Your beauty bag is empty</h2>
+                <p>Explore our makeup and skincare collection to find something you'll love.</p>
+                <a class="ns-cart-checkout" href="{{ path('app_home') }}#products">Explore Products</a>
+            </div>
+        {% else %}
+            {% set cartQuantity = 0 %}
+            {% for item in items %}
+                {% set cartQuantity = cartQuantity + item.quantity %}
+            {% endfor %}
+            <div class="ns-cart-layout">
+                <section class="ns-cart-items" aria-label="Products in your cart">
+                    {% for item in items %}
+                        <article class="ns-cart-item">
+                            {% if item.product.imageFilename %}
+                                <img class="ns-cart-image" src="{{ asset('uploads/products/' ~ item.product.imageFilename) }}" alt="{{ item.product.name }}" loading="lazy">
+                            {% else %}
+                                <div class="ns-cart-image-placeholder" aria-hidden="true">NS</div>
+                            {% endif %}
+                            <div>
+                                <div class="ns-cart-item-heading">
+                                    <div>
+                                        <p class="ns-cart-category">{{ item.product.category }}</p>
+                                        <h2 class="ns-cart-item-name">{{ item.product.name }}</h2>
+                                        <span class="ns-cart-unit-price">₱{{ item.product.price|number_format(2) }} each</span>
+                                    </div>
+                                    <strong class="ns-cart-line-total">₱{{ item.subtotal|number_format(2) }}</strong>
+                                </div>
+                                <div class="ns-cart-controls">
+                                    <form class="ns-cart-update" method="post" action="{{ path('cart_update', {id: item.product.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cart_update_' ~ item.product.id) }}">
+                                        <label for="ns-cart-qty-{{ item.product.id }}">Qty</label>
+                                        <input id="ns-cart-qty-{{ item.product.id }}" class="ns-cart-qty" type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" required>
+                                        <button class="ns-cart-btn ns-cart-btn-update" type="submit">Update</button>
+                                    </form>
+                                    <form method="post" action="{{ path('cart_remove', {id: item.product.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cart_remove_' ~ item.product.id) }}">
+                                        <button class="ns-cart-btn ns-cart-btn-remove" type="submit">Remove</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </section>
 
-    {% for message in app.flashes('error') %}
-        <p style="color: red;">{{ message }}</p>
-    {% endfor %}
-
-    {% if items is empty %}
-        <p>Your shopping cart is empty.</p>
-    {% else %}
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                    <tr>
-                        <td>{{ item.product.name }}</td>
-                        <td>₱{{ item.product.price|number_format(2) }}</td>
-                        
-<td>
-    <form method="post"
-          action="{{ path('cart_update', {id: item.product.id}) }}"
-          class="d-flex align-items-center gap-2">
-
-        <input type="hidden"
-               name="_token"
-               value="{{ csrf_token('cart_update_' ~ item.product.id) }}">
-
-        <input type="number"
-               name="quantity"
-               value="{{ item.quantity }}"
-               min="1"
-               max="{{ item.product.stock }}"
-               class="form-control"
-               style="width:85px;"
-               required>
-
-        <button type="submit"
-                class="btn btn-sm"
-                style="background:#C0603F;color:white;">
-            Update
-        </button>
-    </form>
-</td>
-
-                        <td>₱{{ item.subtotal|number_format(2) }}</td>
-                        <td>
-                            <form method="post"
-                                  action="{{ path('cart_remove', {id: item.product.id}) }}">
-                                <input type="hidden" name="_token"
-                                       value="{{ csrf_token('cart_remove_' ~ item.product.id) }}">
-                                <button type="submit">Remove</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <h2>Total: ₱{{ total|number_format(2) }}</h2>
-        <a href="{{ path('checkout_index') }}"
-   class="btn"
-   style="background:#C0603F;color:white;padding:12px 30px;">
-    Proceed to Checkout
-</a>
-
-        <p>Checkout will be added in the next step.</p>
-    {% endif %}
-</div>
+                <aside class="ns-cart-summary" aria-label="Order summary">
+                    <h2>Order Summary</h2>
+                    <div class="ns-cart-summary-row">
+                        <span>Items ({{ cartQuantity }})</span>
+                        <strong>₱{{ total|number_format(2) }}</strong>
+                    </div>
+                    <div class="ns-cart-summary-total">
+                        <span>Subtotal</span>
+                        <strong>₱{{ total|number_format(2) }}</strong>
+                    </div>
+                    <a class="ns-cart-checkout" href="{{ path('checkout_index') }}">Proceed to Checkout →</a>
+                    <a class="ns-cart-continue" href="{{ path('app_home') }}#products">← Continue Shopping</a>
+                    <p class="ns-cart-note">Your final order details and payment method will be confirmed at checkout.</p>
+                </aside>
+            </div>
+        {% endif %}
+    </div>
+</main>
 {% endblock %}

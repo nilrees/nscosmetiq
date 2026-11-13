@@ -1,83 +1,130 @@
-
 {% extends 'base.html.twig' %}
 
 {% block title %}Shop | NS COSMETIQ{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .ns-shop { --rose:#C0603F; --brown:#49332D; --muted:#806C64; --cream:#FFF8F5; --blush:#F9E3DC; background:#FFF8F5; color:var(--brown); min-height:80vh; padding-bottom:80px; }
+        .ns-shop * { box-sizing:border-box; }
+        .ns-shop a { text-decoration:none; }
+        .ns-shop-wrap { max-width:1240px; margin:auto; padding:0 24px; }
+        .ns-shop-hero { background:linear-gradient(115deg,#FFF8F5 10%,#F7DCD1 100%); border-bottom:1px solid #EBD7CE; padding:25px 0 23px; }
+        .ns-shop-eyebrow { color:var(--rose); font-size:12px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:12px; }
+        .ns-shop-hero h1 { font-family:Georgia,serif; font-size:clamp(28px,3.2vw,42px); font-weight:400; line-height:1.15; margin:0 0 8px; }
+        .ns-shop-hero h1 em { color:var(--rose); font-weight:400; }
+        .ns-shop-hero p { color:var(--muted); max-width:600px; line-height:1.5; margin-bottom:12px; }
+        .ns-shop-actions { display:flex; flex-wrap:wrap; gap:12px; }
+        .ns-shop-btn { display:inline-flex; justify-content:center; align-items:center; text-align:center; padding:12px 23px; border-radius:999px; font-size:13px; font-weight:800; border:1px solid var(--rose); cursor:pointer; transition:background .2s,transform .2s; }
+        .ns-shop-btn:hover { transform:translateY(-2px); }
+        .ns-shop-btn-primary { background:var(--rose); color:#fff !important; }
+        .ns-shop-btn-primary:hover { background:#A64E33; }
+        .ns-shop-btn-outline { background:#fff9f6; color:var(--rose) !important; }
+        .ns-shop-btn-outline:hover { background:#FCEAE2; }
+        .ns-shop-main { padding-top:42px; }
+        .ns-shop-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+        .ns-shop-heading h2 { font-family:Georgia,serif; font-size:30px; font-weight:400; margin:0; }
+        .ns-shop-count { color:var(--muted); font-size:13px; }
+        .ns-shop-filter { background:#fff; border:1px solid #F0E1DA; box-shadow:0 10px 30px rgba(73,51,45,.04); border-radius:18px; padding:22px; display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1.2fr) auto auto; gap:13px; align-items:end; margin-bottom:30px; }
+        .ns-shop-field label { display:block; font-size:12px; font-weight:800; margin-bottom:8px; }
+        .ns-shop-field input { width:100%; min-width:0; padding:12px 14px; border:1px solid #E4D6D0; border-radius:10px; background:#FFFCFA; color:var(--brown); outline:none; }
+        .ns-shop-field input:focus { border-color:var(--rose); box-shadow:0 0 0 3px rgba(192,96,63,.12); }
+        .ns-shop-filter .ns-shop-btn { min-height:46px; white-space:nowrap; }
+        .ns-shop-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px; }
+        .ns-shop-card { background:#fff; border:1px solid #F0E1DA; border-radius:18px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 6px 20px rgba(73,51,45,.035); transition:transform .2s,box-shadow .2s; }
+        .ns-shop-card:hover { transform:translateY(-5px); box-shadow:0 15px 35px rgba(73,51,45,.1); }
+        .ns-shop-photo { height:245px; position:relative; display:flex; align-items:center; justify-content:center; background:#F9E9E2; overflow:hidden; }
+        .ns-shop-photo img { width:100%; height:100%; object-fit:cover; }
+        .ns-shop-placeholder { font:italic 54px Georgia,serif; color:#D4A99A; }
+        .ns-shop-tag { position:absolute; top:14px; left:14px; background:rgba(255,255,255,.95); padding:7px 12px; border-radius:999px; color:var(--brown); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+        .ns-shop-card-content { padding:21px; display:flex; flex-direction:column; flex:1; }
+        .ns-shop-category { font-size:11px; text-transform:uppercase; letter-spacing:1.7px; color:var(--rose); font-weight:800; margin-bottom:8px; }
+        .ns-shop-card h3 { font-size:17px; font-weight:800; line-height:1.4; margin:0 0 12px; }
+        .ns-shop-price { font-size:21px; color:var(--rose); font-weight:800; margin-bottom:8px; }
+        .ns-shop-stock { font-size:12px; color:#48745D; font-weight:700; margin-bottom:18px; }
+        .ns-shop-stock.out { color:#B34A55; }
+        .ns-shop-cart-form { margin-top:auto; }
+        .ns-shop-cart-form button { width:100%; border-radius:11px; padding:13px 12px; font-weight:800; border:0; background:var(--rose); color:#fff; cursor:pointer; }
+        .ns-shop-cart-form button:hover:not(:disabled) { background:#A64E33; }
+        .ns-shop-cart-form button:disabled { background:#E9DAD3; color:#8E7369; cursor:not-allowed; }
+        .ns-shop-empty { grid-column:1/-1; padding:70px 20px; text-align:center; border:1px dashed #DDBEB0; border-radius:18px; background:#fff; }
+        .ns-shop-empty h3 { font-family:Georgia,serif; font-size:28px; font-weight:400; }
+        .ns-shop-empty p { color:var(--muted); margin-bottom:22px; }
+        @media(max-width:1050px) { .ns-shop-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .ns-shop-filter { grid-template-columns:1fr 1fr; } }
+        @media(max-width:720px) { .ns-shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .ns-shop-filter { grid-template-columns:1fr; } .ns-shop-photo { height:210px; } .ns-shop-card-content { padding:16px; } .ns-shop-hero { padding:22px 0; } }
+        @media(max-width:440px) { .ns-shop-grid { grid-template-columns:1fr; } .ns-shop-photo { height:270px; } .ns-shop-wrap { padding:0 16px; } }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="container py-5">
+<div class="ns-shop">
+    <header class="ns-shop-hero">
+        <div class="ns-shop-wrap">
+            <div class="ns-shop-eyebrow">NS COSMETIQ · BEAUTY ESSENTIALS</div>
+            <h1>Find Your <em>Beauty Favorites</em></h1>
+            <p>Explore our curated makeup and skincare collection. Discover your everyday glow, one beauty essential at a time.</p>
+            <nav class="ns-shop-actions" aria-label="Shop navigation">
+                <a class="ns-shop-btn ns-shop-btn-outline" href="{{ path('app_home') }}">Back to Home</a>
+                <a class="ns-shop-btn ns-shop-btn-primary" href="{{ path('cart_index') }}">View Cart</a>
+            </nav>
+        </div>
+    </header>
 
-    <h1 style="color:#49332D;">Shop NS COSMETIQ</h1>
-    <p>Discover your favorite makeup and skincare essentials.</p>
-
-    <form method="get" action="{{ path('shop_index') }}"
-          class="row g-3 mb-4">
-
-        <div class="col-md-5">
-            <input type="text" name="search"
-                   class="form-control"
-                   placeholder="Search products..."
-                   value="{{ search }}">
+    <main class="ns-shop-wrap ns-shop-main">
+        <div class="ns-shop-heading">
+            <h2>Shop the Collection</h2>
+            <span class="ns-shop-count">{{ products|length }} product{{ products|length == 1 ? '' : 's' }} found</span>
         </div>
 
-        <div class="col-md-4">
-            <input type="text" name="category"
-                   class="form-control"
-                   placeholder="Category"
-                   value="{{ category }}">
-        </div>
+        <form class="ns-shop-filter" method="get" action="{{ path('shop_index') }}" role="search">
+            <div class="ns-shop-field">
+                <label for="ns-shop-search">Search products</label>
+                <input id="ns-shop-search" type="search" name="search" placeholder="Search your favorite beauty products..." value="{{ search|default('') }}">
+            </div>
+            <div class="ns-shop-field">
+                <label for="ns-shop-category">Category</label>
+                <input id="ns-shop-category" type="text" name="category" placeholder="e.g. Makeup, Skincare" value="{{ category|default('') }}">
+            </div>
+            <button class="ns-shop-btn ns-shop-btn-primary" type="submit">Search Products</button>
+            <a class="ns-shop-btn ns-shop-btn-outline" href="{{ path('shop_index') }}">Clear Filters</a>
+        </form>
 
-        <div class="col-md-3">
-            <button class="btn btn-dark w-100" type="submit">
-                Search
-            </button>
-        </div>
-    </form>
-
-    <div class="row g-4">
-        {% for product in products %}
-            <div class="col-md-4 col-lg-3">
-                <div class="card h-100 shadow-sm">
-
-                    {% if product.imageFilename %}
-                        <img
-                            src="{{ asset('uploads/products/' ~ product.imageFilename) }}"
-                            alt="{{ product.name }}"
-                            class="card-img-top"
-                            style="height:230px;object-fit:cover;">
-                    {% endif %}
-
-                    <div class="card-body">
-                        <h5>{{ product.name }}</h5>
-                        <p>{{ product.category }}</p>
-
-                        <h5 style="color:#C0603F;">
-                            ₱{{ product.price|number_format(2) }}
-                        </h5>
-
-                        <p>Stock: {{ product.stock }}</p>
-
-                        <form method="post"
-                              action="{{ path('cart_add', {id: product.id}) }}">
-                            <input type="hidden"
-                                   name="_token"
-                                   value="{{ csrf_token('cart_add_' ~ product.id) }}">
-
-                            <button type="submit"
-                                    class="btn w-100"
-                                    style="background:#C0603F;color:white;">
-                                Add to Cart
+        <section class="ns-shop-grid" aria-label="Available products">
+            {% for product in products %}
+                <article class="ns-shop-card">
+                    <div class="ns-shop-photo">
+                        {% if product.imageFilename %}
+                            <img src="{{ asset('uploads/products/' ~ product.imageFilename) }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <span class="ns-shop-placeholder">NS</span>
+                        {% endif %}
+                        <span class="ns-shop-tag">{{ product.category }}</span>
+                    </div>
+                    <div class="ns-shop-card-content">
+                        <div class="ns-shop-category">{{ product.category }}</div>
+                        <h3>{{ product.name }}</h3>
+                        <div class="ns-shop-price">₱{{ product.price|number_format(2) }}</div>
+                        {% if product.stock > 0 %}
+                            <div class="ns-shop-stock">✓ In stock · {{ product.stock }} available</div>
+                        {% else %}
+                            <div class="ns-shop-stock out">Out of stock</div>
+                        {% endif %}
+                        <form class="ns-shop-cart-form" method="post" action="{{ path('cart_add', {id: product.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cart_add_' ~ product.id) }}">
+                            <button type="submit" {% if product.stock <= 0 %}disabled{% endif %}>
+                                {{ product.stock > 0 ? '🛒 Add to Cart' : 'Out of Stock' }}
                             </button>
                         </form>
                     </div>
-
+                </article>
+            {% else %}
+                <div class="ns-shop-empty">
+                    <h3>No products found</h3>
+                    <p>Try a different search or clear your filters to explore our beauty collection.</p>
+                    <a class="ns-shop-btn ns-shop-btn-primary" href="{{ path('shop_index') }}">Browse All Products</a>
                 </div>
-            </div>
-        {% else %}
-            <div class="col-12">
-                <p>No products available.</p>
-            </div>
-        {% endfor %}
-    </div>
-
+            {% endfor %}
+        </section>
+    </main>
 </div>
 {% endblock %}

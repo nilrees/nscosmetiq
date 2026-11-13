@@ -824,7 +824,7 @@
 
         <div class="ns-nav-links">
             <a href="#home">HOME</a>
-            <a href="#products">ALL PRODUCTS</a>
+            <a href="{{ path('shop_index') }}">SHOP PRODUCTS</a>
             <a href="#categories">CATEGORIES</a>
             <a href="#offers">SPECIAL OFFERS</a>
             <a href="#new">WHAT'S NEW</a>
@@ -832,7 +832,7 @@
         </div>
 
         <div class="ns-nav-links">
-            <a href="{{ path('cart_index') }}" class="ns-cart-nav">🛒 CART</a>
+            <a href="{{ path('cart_index') }}" class="ns-cart-nav">VIEW CART</a>
             {% if app.user %}
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('admin_dashboard') }}" class="ns-account-link">
@@ -873,7 +873,7 @@
                 your natural beauty and confidence.
             </p>
 
-            <a href="#products" class="ns-button">
+            <a href="{{ path('shop_index') }}" class="ns-button">
                 EXPLORE COLLECTION
             </a>
         </div>
@@ -1006,7 +1006,7 @@
                         {% if product.stock > 0 %}
                             <form method="post" action="{{ path('cart_add', {id: product.id}) }}" class="ns-cart-form">
                                 <input type="hidden" name="_token" value="{{ csrf_token('cart_add_' ~ product.id) }}">
-                                <button type="submit" class="ns-cart-button">🛒 Add to Cart</button>
+                                <button type="submit" class="ns-cart-button">Add to Cart</button>
                             </form>
                         {% else %}
                             <div class="ns-cart-form"><button type="button" class="ns-cart-button" disabled>Out of Stock</button></div>
@@ -1040,7 +1040,7 @@
             discover something special for your routine.
         </p>
 
-        <a href="#products" class="ns-button">
+        <a href="{{ path('shop_index') }}" class="ns-button">
             SHOP THE COLLECTION
         </a>
     </section>
@@ -1077,7 +1077,7 @@
                         {% if product.stock > 0 %}
                             <form method="post" action="{{ path('cart_add', {id: product.id}) }}" class="ns-cart-form">
                                 <input type="hidden" name="_token" value="{{ csrf_token('cart_add_' ~ product.id) }}">
-                                <button type="submit" class="ns-cart-button">🛒 Add to Cart</button>
+                                <button type="submit" class="ns-cart-button">Add to Cart</button>
                             </form>
                         {% else %}
                             <div class="ns-cart-form"><button type="button" class="ns-cart-button" disabled>Out of Stock</button></div>
@@ -1127,7 +1127,7 @@
             favorites, and celebrate your personal style.
         </p>
 
-        <a href="#products" class="ns-about-button">
+        <a href="{{ path('shop_index') }}" class="ns-about-button">
             DISCOVER OUR PRODUCTS →
         </a>
 
@@ -1150,7 +1150,7 @@
             <div>
                 <h4>EXPLORE</h4>
                 <a href="#home">Home</a>
-                <a href="#products">All Products</a>
+                <a href="{{ path('shop_index') }}">Shop Products</a>
                 <a href="#categories">Categories</a>
                 <a href="#new">What's New</a>
             </div>
