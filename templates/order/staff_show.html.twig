@@ -1,0 +1,414 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Order #{{ order.id }} | NS COSMETIQ
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    <style>
+        .order-details {
+            color: #49332D;
+            padding: 25px 5px 50px;
+        }
+
+        .order-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .order-heading h1 {
+            font-weight: 800;
+            font-size: 30px;
+        }
+
+        .order-panel {
+            background: #FFFFFF;
+            border: 1px solid #F0DDD5;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 22px;
+        }
+
+        .order-panel h2 {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .order-label {
+            color: #987A70;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .order-value {
+            font-size: 15px;
+            margin-bottom: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .order-total {
+            color: #C0603F;
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .order-btn {
+            display: inline-block;
+            padding: 11px 20px;
+            border-radius: 10px;
+            background: #C0603F;
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+        }
+
+        .order-btn:hover {
+            background: #9E492D;
+            color: white;
+        }
+
+        /* ORDER STATUS BADGES */
+
+        .order-status {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .order-status-pending {
+            background: #FFF2D9;
+            color: #956017;
+        }
+
+        .order-status-processing {
+            background: #E6F0FF;
+            color: #315D9C;
+        }
+
+        .order-status-shipped {
+            background: #F0E8FA;
+            color: #7044A0;
+        }
+
+        .order-status-delivered {
+            background: #E6F6EB;
+            color: #26724A;
+        }
+
+        .order-status-cancelled {
+            background: #FCE7E9;
+            color: #AD4350;
+        }
+
+        /* ADMIN CANCELLATION SECTION */
+
+        .order-cancel-panel {
+            background: #FFF8F6;
+            border: 1px solid #EAC5BD;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 22px;
+        }
+
+        .order-cancel-panel h2 {
+            font-size: 19px;
+            font-weight: 800;
+            color: #49332D;
+            margin-bottom: 15px;
+        }
+
+        .order-cancel-panel p {
+            color: #92776D;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .order-cancel-btn {
+            background: #B74752;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .order-cancel-btn:hover {
+            background: #963642;
+            color: #FFFFFF;
+        }
+
+        .order-cancelled-panel {
+            background: #FCE7E9;
+            border: 1px solid #EAC5BD;
+            border-radius: 16px;
+            padding: 22px;
+            color: #AD4350;
+            margin-bottom: 22px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="order-details">
+
+    {# PAGE HEADING #}
+
+    <div class="order-heading">
+        <div>
+            <h1>Order #{{ order.id }}</h1>
+            <p>Customer purchase details</p>
+        </div>
+
+        <a href="{{ path('staff_orders') }}"
+           class="order-btn">
+            Back to Orders
+        </a>
+    </div>
+
+    {# FLASH MESSAGES #}
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# CUSTOMER AND ORDER INFORMATION #}
+
+    <div class="row g-4">
+
+        <div class="col-12 col-lg-6">
+            <div class="order-panel h-100">
+                <h2>Customer Information</h2>
+
+                <div class="order-label">Customer Email</div>
+                <div class="order-value">
+                    {{ order.customer.email }}
+                </div>
+
+                <div class="order-label">Contact Number</div>
+                <div class="order-value">
+                    {{ order.contactNumber }}
+                </div>
+
+                <div class="order-label">Shipping Address</div>
+                <div class="order-value">
+                    {{ order.shippingAddress }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="order-panel h-100">
+                <h2>Order Information</h2>
+
+                <div class="order-label">Order Date</div>
+                <div class="order-value">
+                    {{ order.createdAt|date('F d, Y h:i A') }}
+                </div>
+
+                <div class="order-label">Payment Method</div>
+                <div class="order-value">
+                    {{ order.paymentMethod }}
+                </div>
+
+                <div class="order-label">Order Status</div>
+                <div class="order-value">
+                    <span class="order-status order-status-{{ order.status|lower }}">
+                        {{ order.status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# PURCHASED PRODUCTS #}
+
+    <div class="order-panel mt-4">
+        <h2>Purchased Products</h2>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+
+                            <td>
+                                ₱{{ item.unitPrice|number_format(2) }}
+                            </td>
+
+                            <td>
+                                ₱{{ (item.unitPrice * item.quantity)|number_format(2) }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                No products found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-3">
+            <div class="order-label">ORDER TOTAL</div>
+            <div class="order-total">
+                ₱{{ order.totalAmount|number_format(2) }}
+            </div>
+        </div>
+    </div>
+
+    {# UPDATE ORDER STATUS - ADMIN AND STAFF #}
+
+    <div class="order-panel">
+        <h2>Update Order Status</h2>
+
+        {% set nextStatus = {
+            'Pending': 'Processing',
+            'Processing': 'Shipped',
+            'Shipped': 'Delivered'
+        }[order.status] ?? null %}
+
+        {% if nextStatus %}
+
+            <p class="text-muted">
+                Current status:
+                <strong>{{ order.status }}</strong>
+            </p>
+
+            <form method="post"
+                  action="{{ path('staff_order_status', {
+                      id: order.id
+                  }) }}">
+
+                <input
+                    type="hidden"
+                    name="_token"
+                    value="{{ csrf_token('order_status_' ~ order.id) }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="status"
+                    value="{{ nextStatus }}"
+                >
+
+                <button type="submit" class="order-btn">
+                    Mark as {{ nextStatus }}
+                </button>
+            </form>
+
+        {% elseif order.status == 'Cancelled' %}
+
+            <p class="text-danger fw-bold">
+                This order has been cancelled.
+                No further status changes are allowed.
+            </p>
+
+        {% elseif order.status == 'Delivered' %}
+
+            <p class="text-success fw-bold">
+                This order has been delivered successfully.
+            </p>
+
+        {% else %}
+
+            <p>No further status changes available.</p>
+
+        {% endif %}
+    </div>
+
+    {# ADMIN ONLY - CANCEL PENDING ORDER #}
+
+    {% if is_granted('ROLE_ADMIN') and order.status == 'Pending' %}
+
+        <div class="order-cancel-panel">
+
+            <h2>Cancel Customer Order</h2>
+
+            <p>
+                This order is still Pending.
+                As an administrator, you can cancel it
+                before processing begins.
+            </p>
+
+            <p>
+                When you cancel this order, the purchased
+                quantities will automatically be returned
+                to product inventory.
+            </p>
+
+            <form
+                method="post"
+                action="{{ path('order_cancel', {id: order.id}) }}"
+                onsubmit="return confirm('Are you sure you want to cancel Order #{{ order.id }} and restore product stock? This action cannot be undone.');"
+            >
+
+                <input
+                    type="hidden"
+                    name="_token"
+                    value="{{ csrf_token('cancel_order_' ~ order.id) }}"
+                >
+
+                <button type="submit" class="order-cancel-btn">
+                    Cancel Order &amp; Restore Stock
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+    {# CANCELLED ORDER NOTICE #}
+
+    {% if order.status == 'Cancelled' %}
+
+        <div class="order-cancelled-panel">
+            <h2>Order Cancelled</h2>
+
+            <p class="mb-0">
+                This order has been cancelled.
+                No further processing is allowed.
+            </p>
+        </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

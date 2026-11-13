@@ -1,0 +1,240 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Order;
+use App\Entity\User;
+use App\Repository\OrderRepository;
+use App\Repository\OrderItemRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[IsGranted('ROLE_USER')]
+class OrderController extends AbstractController
+{
+    // ==========================================
+    // CUSTOMER - MY ORDERS
+    // ==========================================
+
+    #[Route('/my-orders', name: 'customer_orders', methods: ['GET'])]
+    public function myOrders(OrderRepository $orders): Response
+    {
+        $customer = $this->getUser();
+
+        $myOrders = $orders->findBy(
+            ['customer' => $customer],
+            ['createdAt' => 'DESC']
+        );
+
+        return $this->render('order/my_orders.html.twig', [
+            'orders' => $myOrders,
+        ]);
+    }
+
+    // ==========================================
+    // CUSTOMER - ORDER DETAILS
+    // ==========================================
+
+    #[Route('/my-orders/{id}', name: 'customer_order_show', methods: ['GET'])]
+    public function show(
+        Order $order,
+        OrderItemRepository $items
+    ): Response {
+        if ($order->getCustomer()?->getId() !== $this->getUser()?->getId()) {
+            throw $this->createAccessDeniedException(
+                'You cannot view this order.'
+            );
+        }
+
+        return $this->render('order/show.html.twig', [
+            'order' => $order,
+            'items' => $items->findBy([
+                'customerOrder' => $order,
+            ]),
+        ]);
+    }
+
+    // ==========================================
+    // STAFF / ADMIN - MANAGE ORDERS
+    // ==========================================
+
+    #[Route('/staff/orders', name: 'staff_orders', methods: ['GET'])]
+    #[IsGranted('ROLE_STAFF')]
+    public function staffOrders(
+        OrderRepository $orders,
+        OrderItemRepository $items
+    ): Response {
+        $user = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        $visibleOrders = [];
+
+        foreach ($orders->findBy([], ['createdAt' => 'DESC']) as $order) {
+            $orderItems = $items->findBy([
+                'customerOrder' => $order,
+            ]);
+
+            if (!$orderItems) {
+                continue;
+            }
+
+            $canManage = $isAdmin;
+
+            if (!$isAdmin) {
+                $canManage = true;
+
+                foreach ($orderItems as $item) {
+                    $owner = $item->getProduct()?->getCreatedBy();
+
+                    if ($owner?->getId() !== $user?->getId()) {
+                        $canManage = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($canManage) {
+                $visibleOrders[] = $order;
+            }
+        }
+
+        return $this->render('order/staff_orders.html.twig', [
+            'orders' => $visibleOrders,
+        ]);
+    }
+
+    // ==========================================
+    // STAFF / ADMIN - VIEW ORDER DETAILS
+    // ==========================================
+
+    #[Route('/staff/orders/{id}', name: 'staff_order_show', methods: ['GET'])]
+    #[IsGranted('ROLE_STAFF')]
+    public function staffOrderShow(
+        Order $order,
+        OrderItemRepository $orderItemRepository
+    ): Response {
+        $user = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        $items = $orderItemRepository->findBy([
+            'customerOrder' => $order,
+        ]);
+
+        if (!$items) {
+            throw $this->createNotFoundException(
+                'No items found for this order.'
+            );
+        }
+
+        // Admin can view all orders.
+        // Staff can view only orders containing
+        // products that all belong to them.
+        if (!$isAdmin) {
+            foreach ($items as $item) {
+                $owner = $item->getProduct()?->getCreatedBy();
+
+                if ($owner?->getId() !== $user?->getId()) {
+                    throw $this->createAccessDeniedException(
+                        'You do not have permission to view this order.'
+                    );
+                }
+            }
+        }
+
+        return $this->render('order/staff_show.html.twig', [
+            'order' => $order,
+            'items' => $items,
+        ]);
+    }
+
+    // ==========================================
+    // STAFF / ADMIN - UPDATE ORDER STATUS
+    // ==========================================
+
+    #[Route('/staff/orders/{id}/status', name: 'staff_order_status', methods: ['POST'])]
+    #[IsGranted('ROLE_STAFF')]
+    public function updateStatus(
+        Order $order,
+        Request $request,
+        OrderItemRepository $items,
+        EntityManagerInterface $em
+    ): Response {
+        // CSRF protection
+        if (!$this->isCsrfTokenValid(
+            'order_status_' . $order->getId(),
+            $request->request->get('_token')
+        )) {
+            throw $this->createAccessDeniedException(
+                'Invalid CSRF token.'
+            );
+        }
+
+        $user = $this->getUser();
+
+        $orderItems = $items->findBy([
+            'customerOrder' => $order,
+        ]);
+
+        if (!$orderItems) {
+            throw $this->createAccessDeniedException(
+                'This order has no items.'
+            );
+        }
+
+        // Staff can update only their own orders.
+        if (!$this->isGranted('ROLE_ADMIN')) {
+            foreach ($orderItems as $item) {
+                $owner = $item->getProduct()?->getCreatedBy();
+
+                if ($owner?->getId() !== $user?->getId()) {
+                    throw $this->createAccessDeniedException(
+                        'You cannot update this order.'
+                    );
+                }
+            }
+        }
+
+        $nextStatus = (string) $request->request->get(
+            'status',
+            ''
+        );
+
+        // Allowed order workflow
+        $allowedTransitions = [
+            'Pending' => ['Processing'],
+            'Processing' => ['Shipped'],
+            'Shipped' => ['Delivered'],
+            'Delivered' => [],
+        ];
+
+        $currentStatus = $order->getStatus();
+
+        if (!in_array(
+            $nextStatus,
+            $allowedTransitions[$currentStatus] ?? [],
+            true
+        )) {
+            $this->addFlash(
+                'error',
+                'Invalid order status change.'
+            );
+
+            return $this->redirectToRoute('staff_orders');
+        }
+
+        $order->setStatus($nextStatus);
+
+        $em->flush();
+
+        $this->addFlash(
+            'success',
+            'Order status updated successfully!'
+        );
+
+        return $this->redirectToRoute('staff_orders');
+    }
+}

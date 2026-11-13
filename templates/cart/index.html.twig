@@ -76,6 +76,11 @@
         </table>
 
         <h2>Total: ₱{{ total|number_format(2) }}</h2>
+        <a href="{{ path('checkout_index') }}"
+   class="btn"
+   style="background:#C0603F;color:white;padding:12px 30px;">
+    Proceed to Checkout
+</a>
 
         <p>Checkout will be added in the next step.</p>
     {% endif %}

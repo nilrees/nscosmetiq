@@ -1,0 +1,35 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Confirmed | NS COSMETIQ{% endblock %}
+
+{% block body %}
+<div class="container py-5 text-center"
+     style="max-width: 700px;">
+
+    <div class="card p-5 shadow-sm">
+        <h1 style="color:#3E8067;">Order Placed!</h1>
+
+        <p>Thank you for shopping with NS COSMETIQ.</p>
+
+        <h4>Order #{{ order.id }}</h4>
+
+        <p>
+            Status:
+            <strong>{{ order.status }}</strong>
+        </p>
+
+        <h3 style="color:#C0603F;">
+            ₱{{ order.totalAmount|number_format(2) }}
+        </h3>
+
+        <p>Payment: Cash on Delivery</p>
+
+        <a href="{{ path('shop_index') }}"
+           class="btn mt-3"
+           style="background:#C0603F;color:white;">
+            Continue Shopping
+        </a>
+    </div>
+</div>
+{% endblock %}

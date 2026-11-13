@@ -1,0 +1,49 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}My Orders | NS COSMETIQ{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h2>My Orders</h2>
+    <p>View your NS COSMETIQ purchases.</p>
+
+    {% if orders is empty %}
+        <p>You haven't placed any orders yet.</p>
+        <a href="{{ path('shop_index') }}" class="btn btn-primary">
+            Shop Now
+        </a>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.createdAt|date('M d, Y') }}</td>
+                            <td>₱{{ order.totalAmount|number_format(2) }}</td>
+                            <td>{{ order.status }}</td>
+                            <td>
+                                <a href="{{ path('customer_order_show', {
+                                    id: order.id
+                                }) }}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

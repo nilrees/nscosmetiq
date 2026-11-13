@@ -278,6 +278,40 @@
                 padding: 15px;
             }
         }
+
+        /* INVENTORY ALERTS */
+        .ns-inventory-alert { border-radius: 14px; padding: 16px 20px; margin-bottom: 14px; border: 1px solid; }
+        .ns-inventory-alert.out { background: #FFF1F1; border-color: #F1C9CD; color: #963642; }
+        .ns-inventory-alert.low { background: #FFF7E8; border-color: #F2DCA9; color: #795414; }
+        .ns-inventory-alert a { color: inherit; font-weight: 800; }
+        .ns-inventory-table { width: 100%; border-collapse: collapse; }
+        .ns-inventory-table th, .ns-inventory-table td { padding: 13px 18px; border-bottom: 1px solid #F3E7E1; vertical-align: middle; }
+        .ns-inventory-table th { background: #FFF1EB; font-size: 12px; color: #76584F; }
+        .ns-inventory-table tr:last-child td { border-bottom: 0; }
+        .ns-inventory-badge { display: inline-block; padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+        .ns-inventory-badge.out { background: #FCE2E5; color: #AD4350; }
+        .ns-inventory-badge.low { background: #FFF0D6; color: #956017; }
+        .ns-restock-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ns-restock-form input { width: 85px; padding: 9px; border: 1px solid #E9C6B8; border-radius: 9px; }
+        .ns-restock-form button { background: #C0603F; color: white; border: 0; border-radius: 9px; padding: 10px 14px; font-weight: 700; }
+        .ns-restock-form button:hover { background: #9E492D; }
+
+        /* SALES REPORTING */
+        .ns-sales-note { color: #92776D; font-size: 13px; margin: -10px 0 18px; }
+        .ns-sales-card { background: #fff; border: 1px solid #F0DDD5; border-radius: 18px; padding: 23px; height: 100%; box-shadow: 0 8px 25px rgba(93,57,45,.045); }
+        .ns-sales-card .ns-sales-label { color: #987A70; font-size: 12px; font-weight: 800; letter-spacing: .3px; }
+        .ns-sales-card .ns-sales-value { color: #49332D; font-size: clamp(23px,2.5vw,31px); font-weight: 800; margin-top: 10px; overflow-wrap: anywhere; }
+        .ns-sales-card .ns-sales-icon { font-size: 23px; margin-bottom: 10px; }
+        .ns-chart-content { padding: 24px; }
+        .ns-chart-row { display: grid; grid-template-columns: 78px minmax(0,1fr) 125px; gap: 14px; align-items: center; margin-bottom: 17px; font-size: 12px; }
+        .ns-chart-track { background: #FFF1EB; height: 18px; border-radius: 30px; overflow: hidden; }
+        .ns-chart-fill { height: 100%; background: linear-gradient(90deg,#E7A48C,#C0603F); border-radius: 30px; min-width: 0; }
+        .ns-chart-value { text-align: right; font-weight: 800; color: #49332D; }
+        .ns-sales-table { width: 100%; border-collapse: collapse; }
+        .ns-sales-table th { background: #FFF1EB; color: #76584F; font-size: 12px; }
+        .ns-sales-table th, .ns-sales-table td { padding: 14px 18px; border-bottom: 1px solid #F3E7E1; }
+        .ns-sales-table tbody tr:last-child td { border-bottom: 0; }
+        @media (max-width: 600px) { .ns-chart-row { grid-template-columns: 62px minmax(0,1fr); } .ns-chart-value { grid-column: 2; text-align: left; margin-top: -9px; } }
     </style>
 {% endblock %}
 
@@ -300,6 +334,69 @@
             + Add New Product
         </a>
     </div>
+
+    {# INVENTORY ALERTS #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success rounded-3" role="status">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger rounded-3" role="alert">{{ message }}</div>
+    {% endfor %}
+
+    {% if outOfStock > 0 %}
+        <div class="ns-inventory-alert out" role="alert">
+            <strong>Out of Stock Alert!</strong>
+            {{ outOfStock }} product(s) have no remaining stock.
+            <a href="{{ path('product_index') }}">Manage Inventory</a>
+        </div>
+    {% endif %}
+    {% if lowStock > 0 %}
+        <div class="ns-inventory-alert low" role="status">
+            <strong>Low Stock Warning!</strong>
+            {{ lowStock }} product(s) have only 1–5 units remaining.
+            <a href="{{ path('product_index') }}">View Products</a>
+        </div>
+    {% endif %}
+
+    {% if lowStock > 0 or outOfStock > 0 %}
+        <section class="ns-panel" aria-label="Products requiring restocking">
+            <div class="ns-panel-header">
+                <h2>Products That Need Restocking</h2>
+                <a href="{{ path('product_index') }}" class="ns-panel-link">Manage All Products</a>
+            </div>
+            <div class="table-responsive">
+                <table class="ns-inventory-table">
+                    <thead><tr><th>Product</th><th>Remaining Stock</th><th>Status</th><th>Restock</th></tr></thead>
+                    <tbody>
+                    {% for product in outOfStockProducts|merge(lowStockProducts) %}
+                        <tr>
+                            <td><strong>{{ product.name }}</strong></td>
+                            <td>{{ product.stock }}</td>
+                            <td>
+                                {% if product.stock == 0 %}
+                                    <span class="ns-inventory-badge out">Out of Stock</span>
+                                {% else %}
+                                    <span class="ns-inventory-badge low">Low Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if is_granted('edit', product) %}
+                                    <form method="post" action="{{ path('product_restock', {id: product.id}) }}" class="ns-restock-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('restock-product-' ~ product.id) }}">
+                                        <input type="number" name="quantity" min="1" step="1" required placeholder="Qty" aria-label="Quantity to restock for {{ product.name }}">
+                                        <button type="submit">Restock</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted">Not authorized</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
 
     {# DASHBOARD STATISTICS #}
     <div class="row g-4">
@@ -354,6 +451,87 @@
 
     </div>
 
+
+    {# STEP 21: SALES AND REVENUE REPORTS #}
+    <h2 class="ns-section-title">Sales &amp; Revenue Overview</h2>
+    <p class="ns-sales-note">Completed sales are based on Delivered orders only. For COD orders, this is not proof that payment was collected.</p>
+
+    <div class="row g-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="ns-sales-card">
+                <div class="ns-sales-icon">💰</div>
+                <div class="ns-sales-label">DELIVERED ORDER REVENUE</div>
+                <div class="ns-sales-value">₱{{ totalRevenue|default(0)|number_format(2) }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="ns-sales-card">
+                <div class="ns-sales-icon">✅</div>
+                <div class="ns-sales-label">DELIVERED ORDERS</div>
+                <div class="ns-sales-value">{{ completedOrderCount|default(0) }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="ns-sales-card">
+                <div class="ns-sales-icon">🛍️</div>
+                <div class="ns-sales-label">PRODUCT UNITS SOLD</div>
+                <div class="ns-sales-value">{{ totalProductsSold|default(0) }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="ns-sales-card">
+                <div class="ns-sales-icon">📊</div>
+                <div class="ns-sales-label">AVERAGE DELIVERED ORDER VALUE</div>
+                <div class="ns-sales-value">₱{{ averageOrderValue|default(0)|number_format(2) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <section class="ns-panel" aria-label="Monthly sales report">
+        <div class="ns-panel-header"><h2>Monthly Sales Trend</h2></div>
+        <div class="ns-chart-content">
+            <p class="ns-sales-note">Revenue from delivered orders, grouped by the month the order was placed.</p>
+            {% set highestMonthlyRevenue = 0 %}
+            {% for month, revenue in monthlySales|default([]) %}
+                {% if revenue > highestMonthlyRevenue %}
+                    {% set highestMonthlyRevenue = revenue %}
+                {% endif %}
+            {% endfor %}
+            {% for month, revenue in monthlySales|default([]) %}
+                {% set barWidth = highestMonthlyRevenue > 0 ? (revenue / highestMonthlyRevenue * 100) : 0 %}
+                <div class="ns-chart-row">
+                    <strong>{{ month }}</strong>
+                    <div class="ns-chart-track" role="img" aria-label="{{ month }}: ₱{{ revenue|number_format(2) }}">
+                        <div class="ns-chart-fill" style="width: {{ barWidth|round(1) }}%;"></div>
+                    </div>
+                    <span class="ns-chart-value">₱{{ revenue|number_format(2) }}</span>
+                </div>
+            {% else %}
+                <div class="ns-empty">No delivered-order sales to display yet.</div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="ns-panel" aria-label="Best-selling products">
+        <div class="ns-panel-header"><h2>🏆 Top 5 Best-Selling Products</h2></div>
+        <div class="table-responsive">
+            <table class="ns-sales-table">
+                <thead><tr><th>Rank</th><th>Product</th><th>Units Sold</th><th>Item Revenue</th></tr></thead>
+                <tbody>
+                    {% for item in bestSellingProducts|default([]) %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>{{ item.product.name }}</strong></td>
+                            <td>{{ item.quantity }}</td>
+                            <td>₱{{ item.revenue|number_format(2) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="ns-empty">No delivered-order products to report yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
 {# ORDER STATISTICS #}
 <h2 class="ns-section-title">Order Overview</h2>
@@ -456,6 +634,78 @@
         </div>
 
     </div>
+
+    
+{# RECENT CUSTOMER ORDERS #}
+<div class="ns-panel">
+
+    <div class="ns-panel-header">
+        <h2>Recent Customer Orders</h2>
+
+        <a href="{{ path('staff_orders') }}"
+           class="ns-panel-link">
+            View All Orders
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Order ID</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for order in recentOrders %}
+                    <tr>
+                        <td class="ps-4">
+                            <strong>#{{ order.id }}</strong>
+                        </td>
+
+                        <td>
+                            {{ order.customer.email }}
+                        </td>
+
+                        <td>
+                            ₱{{ order.totalAmount|number_format(2) }}
+                        </td>
+
+                        <td>
+                            {% set statusColors = {
+                                'Pending': 'warning',
+                                'Processing': 'info',
+                                'Shipped': 'primary',
+                                'Delivered': 'success',
+                                'Cancelled': 'danger'
+                            } %}
+
+                            <span class="badge text-bg-{{ statusColors[order.status]|default('secondary') }}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ order.createdAt|date('M d, Y') }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            No customer orders yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
 
     {# RECENT PRODUCTS #}
     <div class="ns-panel">

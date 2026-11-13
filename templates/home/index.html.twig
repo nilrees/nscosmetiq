@@ -785,6 +785,22 @@
     }
 }
 
+
+    /* Homepage Add to Cart buttons */
+    .ns-cart-form { margin-top: 16px; }
+    .ns-cart-button {
+        width: 100%; display: flex; align-items: center; justify-content: center;
+        gap: 8px; padding: 12px 16px; border: 1px solid #C0603F;
+        border-radius: 12px; background: #C0603F; color: #fff;
+        font-family: inherit; font-size: 12px; font-weight: 800;
+        letter-spacing: .5px; cursor: pointer; transition: background .2s, transform .2s;
+    }
+    .ns-cart-button:hover:not(:disabled) { background: #9E492D; transform: translateY(-2px); }
+    .ns-cart-button:disabled { background: #E9DCD6; border-color: #E9DCD6; color: #987A70; cursor: not-allowed; }
+    .ns-new-info .ns-cart-form { margin-top: 12px; }
+    .ns-new-info .ns-cart-button { font-size: 11px; padding: 10px; }
+    .ns-cart-nav { white-space: nowrap; }
+
 </style>
 {% endblock %}
 
@@ -816,6 +832,7 @@
         </div>
 
         <div class="ns-nav-links">
+            <a href="{{ path('cart_index') }}" class="ns-cart-nav">🛒 CART</a>
             {% if app.user %}
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('admin_dashboard') }}" class="ns-account-link">
@@ -985,6 +1002,15 @@
                                 </span>
                             {% endif %}
                         </div>
+                        {# Existing CartController handles CSRF and stock checks. #}
+                        {% if product.stock > 0 %}
+                            <form method="post" action="{{ path('cart_add', {id: product.id}) }}" class="ns-cart-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cart_add_' ~ product.id) }}">
+                                <button type="submit" class="ns-cart-button">🛒 Add to Cart</button>
+                            </form>
+                        {% else %}
+                            <div class="ns-cart-form"><button type="button" class="ns-cart-button" disabled>Out of Stock</button></div>
+                        {% endif %}
                     </div>
                 </article>
             {% else %}
@@ -1048,6 +1074,14 @@
                         </div>
                         <h3>{{ product.name }}</h3>
                         <strong>₱{{ product.price|number_format(2) }}</strong>
+                        {% if product.stock > 0 %}
+                            <form method="post" action="{{ path('cart_add', {id: product.id}) }}" class="ns-cart-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cart_add_' ~ product.id) }}">
+                                <button type="submit" class="ns-cart-button">🛒 Add to Cart</button>
+                            </form>
+                        {% else %}
+                            <div class="ns-cart-form"><button type="button" class="ns-cart-button" disabled>Out of Stock</button></div>
+                        {% endif %}
                     </div>
                 </div>
             {% else %}

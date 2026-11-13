@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -94,14 +95,13 @@ class ProductController extends AbstractController
             (string) $request->query->get('category', '')
         );
 
-        // Get products using existing search and filter.
+        // Keep existing search and category filter.
         $products = $productRepository->findForListing(
             $search,
             $category
         );
 
-        // Staff can only see products they created.
-        // Admin can see all products.
+        // Staff can only see their own products.
         if (!$this->isGranted('ROLE_ADMIN')) {
             $staffId = $this->getUser()->getId();
 
@@ -188,7 +188,7 @@ class ProductController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager
     ): Response {
-        // ProductVoter checks ownership and role.
+        // Existing ProductVoter checks ownership.
         $this->denyAccessUnlessGranted('edit', $product);
 
         $form = $this->createForm(
@@ -248,7 +248,6 @@ class ProductController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager
     ): Response {
-        // ProductVoter checks ownership and role.
         $this->denyAccessUnlessGranted('delete', $product);
 
         if (!$this->isCsrfTokenValid(
@@ -268,13 +267,129 @@ class ProductController extends AbstractController
         $entityManager->remove($product);
         $entityManager->flush();
 
-        // Remove image after successful database deletion.
+        // Delete image only after successful database deletion.
         $this->deleteProductImage($filename);
 
         $this->addFlash(
             'success',
             'Product deleted successfully.'
         );
+
+        return $this->redirectToRoute('product_index');
+    }
+
+    // ==========================================
+    // RESTOCK PRODUCT
+    // ADMIN: ANY PRODUCT
+    // STAFF: OWN PRODUCT ONLY
+    // ==========================================
+
+    #[Route('/{id}/restock', name: 'product_restock', methods: ['POST'])]
+    public function restock(
+        Product $product,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Check product ownership and permissions.
+        $this->denyAccessUnlessGranted('edit', $product);
+
+        // Validate CSRF token.
+        if (!$this->isCsrfTokenValid(
+            'restock-product-' . $product->getId(),
+            (string) $request->request->get('_token', '')
+        )) {
+            throw $this->createAccessDeniedException(
+                'Invalid restock security token.'
+            );
+        }
+
+        // Validate restock quantity.
+        $rawQuantity = $request->request->get('quantity');
+
+        $quantity = filter_var(
+            $rawQuantity,
+            FILTER_VALIDATE_INT,
+            [
+                'options' => [
+                    'min_range' => 1,
+                ],
+            ]
+        );
+
+        if ($quantity === false || $quantity === null) {
+            $this->addFlash(
+                'error',
+                'Please enter a valid quantity greater than zero.'
+            );
+
+            return $this->redirectToRoute('product_index');
+        }
+
+        $connection = $entityManager->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            // Lock product row to prevent simultaneous updates.
+            $lockedProduct = $entityManager->find(
+                Product::class,
+                $product->getId(),
+                LockMode::PESSIMISTIC_WRITE
+            );
+
+            if (!$lockedProduct) {
+                throw $this->createNotFoundException(
+                    'Product not found.'
+                );
+            }
+
+            // Reload stock after acquiring the database lock.
+            $entityManager->refresh($lockedProduct);
+
+            // Recheck permissions.
+            $this->denyAccessUnlessGranted(
+                'edit',
+                $lockedProduct
+            );
+
+            $currentStock = $lockedProduct->getStock() ?? 0;
+
+            // Prevent invalid stock values.
+            if ($currentStock < 0) {
+                throw new \RuntimeException(
+                    'Current product stock is invalid.'
+                );
+            }
+
+            if ($quantity > PHP_INT_MAX - $currentStock) {
+                throw new \InvalidArgumentException(
+                    'Restock quantity is too large.'
+                );
+            }
+
+            // Add quantity to current stock.
+            $newStock = $currentStock + $quantity;
+
+            $lockedProduct->setStock($newStock);
+
+            $entityManager->flush();
+            $connection->commit();
+
+            $this->addFlash(
+                'success',
+                $lockedProduct->getName()
+                . ' restocked successfully. Added '
+                . $quantity
+                . ' unit(s). New stock: '
+                . $newStock . '.'
+            );
+
+        } catch (\Throwable $exception) {
+            if ($connection->isTransactionActive()) {
+                $connection->rollBack();
+            }
+
+            throw $exception;
+        }
 
         return $this->redirectToRoute('product_index');
     }

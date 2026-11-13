@@ -1,0 +1,97 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout | NS COSMETIQ{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width: 950px;">
+
+    <h1 style="color:#49332D;">Checkout</h1>
+    <p>Complete your order with NS COSMETIQ.</p>
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row g-4">
+        <div class="col-md-7">
+            <div class="card p-4 shadow-sm">
+                <h4>Shipping Information</h4>
+
+                <form method="post"
+                      action="{{ path('checkout_place_order') }}">
+
+                    <input type="hidden"
+                           name="_token"
+                           value="{{ csrf_token('place_order') }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Shipping Address</label>
+                        <textarea name="shipping_address"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="1000"
+                                  required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contact Number</label>
+                        <input type="tel"
+                               name="contact_number"
+                               class="form-control"
+                               maxlength="30"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <input type="text"
+                               class="form-control"
+                               value="Cash on Delivery (COD)"
+                               readonly>
+                    </div>
+
+                    <button type="submit"
+                            class="btn w-100"
+                            style="background:#C0603F;color:white;">
+                        Place Order
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-4 shadow-sm">
+                <h4>Order Summary</h4>
+                <hr>
+
+                {% for item in items %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            {{ item.product.name }}
+                            × {{ item.quantity }}
+                        </span>
+                        <span>
+                            ₱{{ item.subtotal|number_format(2) }}
+                        </span>
+                    </div>
+                {% endfor %}
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <strong>Total</strong>
+                    <strong style="color:#C0603F;">
+                        ₱{{ total|number_format(2) }}
+                    </strong>
+                </div>
+
+                <small class="text-muted mt-3">
+                    Payment will be collected upon delivery.
+                    Shipping fees are not included.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

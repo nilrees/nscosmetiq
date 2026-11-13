@@ -1,0 +1,485 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Orders | NS COSMETIQ{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    <style>
+        .orders-page {
+            padding: 25px 5px 50px;
+            color: #49332D;
+        }
+
+        .orders-page h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .orders-subtitle {
+            color: #92776D;
+            margin-bottom: 25px;
+        }
+
+        .orders-panel {
+            background: #FFFFFF;
+            border: 1px solid #F0DDD5;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .orders-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .orders-stat-card {
+            background: #FFFFFF;
+            border: 1px solid #F0DDD5;
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .orders-stat-label {
+            color: #92776D;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .orders-stat-number {
+            color: #49332D;
+            font-size: 30px;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+
+        .orders-filter-panel {
+            padding: 24px;
+            margin-bottom: 25px;
+        }
+
+        .orders-filter-panel h2 {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .orders-filter-panel .form-label {
+            color: #49332D;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .orders-filter-panel .form-control,
+        .orders-filter-panel .form-select {
+            border: 1px solid #E7D1C7;
+            border-radius: 9px;
+            padding: 11px 13px;
+            color: #49332D;
+        }
+
+        .orders-filter-panel .form-control:focus,
+        .orders-filter-panel .form-select:focus {
+            border-color: #C0603F;
+            box-shadow: 0 0 0 3px #C0603F20;
+        }
+
+        .orders-table {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: collapse;
+        }
+
+        .orders-table thead {
+            background: #F3E6E0;
+        }
+
+        .orders-table th {
+            padding: 18px 15px;
+            font-weight: 800;
+            color: #49332D;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .orders-table td {
+            padding: 18px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #F2E5DF;
+            font-size: 13px;
+        }
+
+        .orders-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .orders-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 9px;
+            background: #AD5035;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .orders-btn:hover {
+            background: #91412B;
+            color: #FFFFFF;
+        }
+
+        .orders-btn-outline {
+            background: #FFFFFF;
+            border: 1px solid #AD5035;
+            color: #AD5035;
+        }
+
+        .orders-btn-outline:hover {
+            background: #FFF0E9;
+            color: #91412B;
+        }
+
+        .orders-status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .orders-status-pending {
+            background: #FFF2D9;
+            color: #956017;
+        }
+
+        .orders-status-processing {
+            background: #E6F0FF;
+            color: #315D9C;
+        }
+
+        .orders-status-shipped {
+            background: #F0E8FA;
+            color: #7044A0;
+        }
+
+        .orders-status-delivered {
+            background: #E6F6EB;
+            color: #26724A;
+        }
+
+        .orders-status-cancelled {
+            background: #FCE7E9;
+            color: #AD4350;
+        }
+
+        .orders-result-count {
+            color: #92776D;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 991px) {
+            .orders-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 575px) {
+            .orders-page h1 {
+                font-size: 26px;
+            }
+
+            .orders-stat-card {
+                padding: 16px;
+            }
+
+            .orders-stat-number {
+                font-size: 25px;
+            }
+
+            .orders-filter-panel {
+                padding: 18px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="orders-page">
+
+    <h1>Order Management</h1>
+
+    <p class="orders-subtitle">
+        View, search, filter, and process customer orders.
+    </p>
+
+    {# FLASH MESSAGES #}
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# ORDER STATISTICS #}
+
+    <div class="orders-stats">
+
+        <div class="orders-stat-card">
+            <div class="orders-stat-label">
+                Total Orders
+            </div>
+
+            <div class="orders-stat-number">
+                {{ stats.total }}
+            </div>
+        </div>
+
+        <div class="orders-stat-card">
+            <div class="orders-stat-label">
+                Pending Orders
+            </div>
+
+            <div class="orders-stat-number">
+                {{ stats.pending }}
+            </div>
+        </div>
+
+        <div class="orders-stat-card">
+            <div class="orders-stat-label">
+                Processing Orders
+            </div>
+
+            <div class="orders-stat-number">
+                {{ stats.processing }}
+            </div>
+        </div>
+
+        <div class="orders-stat-card">
+            <div class="orders-stat-label">
+                Delivered Orders
+            </div>
+
+            <div class="orders-stat-number">
+                {{ stats.delivered }}
+            </div>
+        </div>
+
+    </div>
+
+    {# SEARCH AND STATUS FILTERS #}
+
+    <div class="orders-panel orders-filter-panel">
+
+        <h2>Search &amp; Filter Orders</h2>
+
+        <form method="get"
+              action="{{ path('staff_orders') }}">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-lg-5">
+                    <label for="order-search" class="form-label">
+                        Search Orders
+                    </label>
+
+                    <input
+                        type="text"
+                        id="order-search"
+                        name="search"
+                        class="form-control"
+                        placeholder="Order number or customer email"
+                        value="{{ search }}"
+                    >
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <label for="order-status" class="form-label">
+                        Order Status
+                    </label>
+
+                    <select
+                        id="order-status"
+                        name="status"
+                        class="form-select"
+                    >
+                        <option value="">All Statuses</option>
+
+                        {% for option in [
+                            'Pending',
+                            'Processing',
+                            'Shipped',
+                            'Delivered',
+                            'Cancelled'
+                        ] %}
+                            <option
+                                value="{{ option }}"
+                                {% if selectedStatus == option %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ option }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    <button type="submit" class="orders-btn">
+                        Search
+                    </button>
+
+                    <a
+                        href="{{ path('staff_orders') }}"
+                        class="orders-btn orders-btn-outline"
+                    >
+                        Clear
+                    </a>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+
+    {# SEARCH RESULT COUNT #}
+
+    <p class="orders-result-count">
+        Showing {{ orders|length }} order(s).
+    </p>
+
+    {# ORDER TABLE #}
+
+    <div class="orders-panel">
+        <div class="table-responsive">
+            <table class="orders-table">
+
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Update Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+
+                            <td>
+                                <strong>#{{ order.id }}</strong>
+                            </td>
+
+                            <td>
+                                {{ order.customer.email }}
+                            </td>
+
+                            <td>
+                                ₱{{ order.totalAmount|number_format(2) }}
+                            </td>
+
+                            <td>
+                                <span class="orders-status orders-status-{{ order.status|lower }}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% set nextStatus = {
+                                    'Pending': 'Processing',
+                                    'Processing': 'Shipped',
+                                    'Shipped': 'Delivered'
+                                }[order.status] ?? null %}
+
+                                {% if nextStatus %}
+
+                                    <form
+                                        method="post"
+                                        action="{{ path('staff_order_status', {
+                                            id: order.id
+                                        }) }}"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="_token"
+                                            value="{{ csrf_token('order_status_' ~ order.id) }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="status"
+                                            value="{{ nextStatus }}"
+                                        >
+
+                                        <button type="submit" class="orders-btn">
+                                            Mark {{ nextStatus }}
+                                        </button>
+
+                                    </form>
+
+                                {% elseif order.status == 'Cancelled' %}
+
+                                    <span class="text-danger fw-bold">
+                                        Cancelled
+                                    </span>
+
+                                {% elseif order.status == 'Delivered' %}
+
+                                    <span class="text-success fw-bold">
+                                        Delivered
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        No action available
+                                    </span>
+
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{{ path('staff_order_show', {
+                                        id: order.id
+                                    }) }}"
+                                    class="orders-btn orders-btn-outline"
+                                >
+                                    View Details
+                                </a>
+                            </td>
+
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                No orders found matching your search or filter.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -358,6 +358,54 @@
         font-weight: 800;
     }
 
+    /* INVENTORY ALERTS */
+
+    .staff-inventory-alert {
+        border-radius: 14px;
+        padding: 17px 20px;
+        margin-bottom: 14px;
+        border: 1px solid;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .staff-inventory-alert.danger {
+        background: #FFF0F1;
+        border-color: #F1C6CC;
+        color: #963842;
+    }
+
+    .staff-inventory-alert.warning {
+        background: #FFF7E8;
+        border-color: #F2D7A7;
+        color: #805616;
+    }
+
+    .staff-inventory-alert a {
+        color: inherit;
+        font-weight: 800;
+    }
+
+    .staff-restock-form {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .staff-restock-quantity {
+        width: 82px;
+        min-height: 38px;
+        padding: 7px 9px;
+        border: 1px solid #E9C6B8;
+        border-radius: 9px;
+        color: #49332D;
+    }
+
+    .staff-restock-form .staff-btn {
+        padding: 9px 12px;
+    }
+
     /* RESPONSIVE DESIGN */
 
     @media (max-width: 1100px) {
@@ -428,6 +476,96 @@
         </span>
 
     </div>
+
+    {% for message in app.flashes('error') %}
+        <div class="staff-inventory-alert danger" role="alert">{{ message }}</div>
+    {% endfor %}
+
+    {% for message in app.flashes('success') %}
+        <div class="staff-inventory-alert warning" role="status">{{ message }}</div>
+    {% endfor %}
+
+    {# INVENTORY WARNINGS AND RESTOCK TABLE #}
+
+    {% if outOfStock > 0 %}
+        <div class="staff-inventory-alert danger" role="alert">
+            <strong>Out of Stock Alert!</strong>
+            {{ outOfStock }} of your products have zero units remaining.
+            <a href="{{ path('product_index') }}">Manage Inventory</a>
+        </div>
+    {% endif %}
+
+    {% if lowStock > 0 %}
+        <div class="staff-inventory-alert warning" role="alert">
+            <strong>Low Stock Warning!</strong>
+            {{ lowStock }} of your products have only 1–5 units remaining.
+            <a href="{{ path('product_index') }}">Manage Inventory</a>
+        </div>
+    {% endif %}
+
+    {% if outOfStock > 0 or lowStock > 0 %}
+        <section class="staff-section" aria-label="Products needing restock">
+            <div class="staff-section-heading">
+                <div>
+                    <h2>Products That Need Restocking</h2>
+                    <p>Restock your own products without leaving the dashboard.</p>
+                </div>
+                <a href="{{ path('product_index') }}" class="staff-btn staff-btn-outline">
+                    View All Products
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="staff-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Remaining Stock</th>
+                            <th>Status</th>
+                            <th>Restock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in outOfStockProducts|merge(lowStockProducts) %}
+                            <tr>
+                                <td>
+                                    <span class="staff-product-name">{{ product.name }}</span>
+                                </td>
+                                <td>{{ product.stock }}</td>
+                                <td>
+                                    {% if product.stock == 0 %}
+                                        <span class="staff-stock-badge staff-stock-out">Out of Stock</span>
+                                    {% else %}
+                                        <span class="staff-stock-badge staff-stock-low">Low Stock</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if is_granted('edit', product) %}
+                                        <form method="post"
+                                              action="{{ path('product_restock', {id: product.id}) }}"
+                                              class="staff-restock-form">
+                                            <input type="hidden"
+                                                   name="_token"
+                                                   value="{{ csrf_token('restock-product-' ~ product.id) }}">
+                                            <input type="number"
+                                                   name="quantity"
+                                                   min="1"
+                                                   step="1"
+                                                   required
+                                                   class="staff-restock-quantity"
+                                                   aria-label="Restock quantity for {{ product.name }}"
+                                                   placeholder="Qty">
+                                            <button type="submit" class="staff-btn">Restock</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
 
     {# DASHBOARD STATISTICS #}
 

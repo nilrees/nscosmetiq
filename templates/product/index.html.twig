@@ -231,7 +231,75 @@
             display: flex;
             gap: 7px;
             align-items: center;
+            flex-wrap: wrap;
         }
+
+        .ns-inventory-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 24px;
+        }
+
+        .ns-inventory-card {
+            background: #FFFFFF;
+            border: 1px solid #F0E1DB;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .ns-inventory-card .ns-card-label {
+            color: #8C7168;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .ns-inventory-card .ns-card-count {
+            font-size: 28px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .ns-inventory-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .ns-inventory-badge.ok { background: #E6F6EB; color: #26724A; }
+        .ns-inventory-badge.low { background: #FFF2D9; color: #956017; }
+        .ns-inventory-badge.out { background: #FCE7E9; color: #AD4350; }
+
+        .ns-restock-form {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+
+        .ns-restock-qty {
+            width: 75px;
+            padding: 8px;
+            border: 1px solid #E6D4CC;
+            border-radius: 9px;
+            font-size: 12px;
+        }
+
+        .ns-restock-btn {
+            background: #3E8067;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 9px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .ns-restock-btn:hover { background: #30664F; }
 
         .ns-empty {
             text-align: center;
@@ -240,6 +308,7 @@
         }
 
         @media (max-width: 768px) {
+            .ns-inventory-summary { grid-template-columns: 1fr; }
             .ns-products-header h1 {
                 font-size: 24px;
             }
@@ -277,6 +346,36 @@
         {{ message }}
     </div>
 {% endfor %}
+
+    {# Counts reflect products currently visible after search/category filtering. #}
+    {% set lowStockCount = 0 %}
+    {% set outOfStockCount = 0 %}
+    {% for product in products %}
+        {% if product.stock <= 0 %}
+            {% set outOfStockCount = outOfStockCount + 1 %}
+        {% elseif product.stock <= 5 %}
+            {% set lowStockCount = lowStockCount + 1 %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="ns-inventory-summary">
+        <div class="ns-inventory-card">
+            <div class="ns-card-label">Visible Products</div>
+            <div class="ns-card-count">{{ products|length }}</div>
+        </div>
+        <div class="ns-inventory-card">
+            <div class="ns-card-label">Low Stock (1–5)</div>
+            <div class="ns-card-count" style="color:#956017">{{ lowStockCount }}</div>
+        </div>
+        <div class="ns-inventory-card">
+            <div class="ns-card-label">Out of Stock</div>
+            <div class="ns-card-count" style="color:#AD4350">{{ outOfStockCount }}</div>
+        </div>
+    </div>
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger rounded-3" role="alert">{{ message }}</div>
+    {% endfor %}
 
     <div class="ns-filter-card">
         <form method="get" action="{{ path('product_index') }}" class="row g-3 align-items-end">
@@ -329,6 +428,7 @@
                         <th>Category</th>
                         <th>Price</th>
                         <th>Stock</th>
+                        <th>Inventory Status</th>
                         <th>Created By</th>
                         <th>Actions</th>
                     </tr>
@@ -379,6 +479,16 @@
                             </td>
 
                             <td>
+                                {% if product.stock <= 0 %}
+                                    <span class="ns-inventory-badge out">Out of Stock</span>
+                                {% elseif product.stock <= 5 %}
+                                    <span class="ns-inventory-badge low">Low Stock</span>
+                                {% else %}
+                                    <span class="ns-inventory-badge ok">In Stock</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
                                 {{ product.createdBy ? product.createdBy.fullName : 'Unknown' }}
                             </td>
 
@@ -392,6 +502,19 @@
                                         >
                                             Edit
                                         </a>
+                                    {% endif %}
+
+                                    {% if is_granted('edit', product) %}
+                                        <form method="post"
+                                              action="{{ path('product_restock', {id: product.id}) }}"
+                                              class="ns-restock-form">
+                                            <input type="hidden" name="_token"
+                                                   value="{{ csrf_token('restock-product-' ~ product.id) }}">
+                                            <input type="number" name="quantity" min="1" step="1"
+                                                   required placeholder="Qty" class="ns-restock-qty"
+                                                   aria-label="Restock quantity for {{ product.name }}">
+                                            <button type="submit" class="ns-restock-btn">Restock</button>
+                                        </form>
                                     {% endif %}
 
                                     {% if is_granted('delete', product) %}
@@ -419,7 +542,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="7" class="ns-empty">
+                            <td colspan="8" class="ns-empty">
                                 <div style="font-size: 35px; margin-bottom: 10px;">
                                     &#128722;
                                 </div>

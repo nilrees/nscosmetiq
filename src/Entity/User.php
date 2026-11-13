@@ -27,20 +27,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     /**
-     * @var list<string> The user roles
+     * @var list<string>
      */
     #[ORM\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Full name is required.')]
-    #[Assert\Length(min: 2, max: 255, minMessage: 'Name must be at least {{ limit }} characters.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Name must be at least {{ limit }} characters.'
+    )]
     private ?string $fullName = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -68,48 +69,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
 
-public function getRoles(): array
-{
-    $roles = $this->roles;
+        return array_values(array_unique($roles));
+    }
 
-    // Every account has basic USER access
-    $roles[] = 'ROLE_USER';
-
-    return array_values(array_unique($roles));
-}
-
-
-    /**
-     * @param list<string> $roles
-     */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    /**
-     * Returns a single readable role for display (e.g. in the users table).
-     */
     public function getRole(): string
     {
         if (in_array('ROLE_ADMIN', $this->roles, true)) {
@@ -119,13 +100,9 @@ public function getRoles(): array
         return 'ROLE_STAFF';
     }
 
-    /**
-     * Sets exactly one role (used by the admin user form dropdown).
-     */
     public function setRole(string $role): static
     {
         $this->roles = [$role];
-
         return $this;
     }
 
@@ -134,9 +111,6 @@ public function getRoles(): array
         return in_array('ROLE_ADMIN', $this->roles, true);
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -145,17 +119,15 @@ public function getRoles(): array
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
-    /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
-     */
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
+
+        $data["\0" . self::class . "\0password"] =
+            hash('crc32c', $this->password);
 
         return $data;
     }
@@ -168,7 +140,6 @@ public function getRoles(): array
     public function setFullName(string $fullName): static
     {
         $this->fullName = $fullName;
-
         return $this;
     }
 
@@ -177,10 +148,10 @@ public function getRoles(): array
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
+    public function setCreatedAt(
+        \DateTimeImmutable $createdAt
+    ): static {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -192,7 +163,6 @@ public function getRoles(): array
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
-
         return $this;
     }
 }

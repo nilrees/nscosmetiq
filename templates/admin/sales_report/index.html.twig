@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sales Reports | NS COSMETIQ{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .ns-sales { color: #49332D; padding: 20px 5px 50px; }
+        .ns-sales-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:26px; border-bottom:1px solid #EBD7D0; padding-bottom:20px; }
+        .ns-sales-header h1 { font-size:clamp(26px,3vw,36px); font-weight:800; margin:0 0 7px; }
+        .ns-sales-header p { color:#92776D; margin:0; }
+        .ns-sales-link { color:#C0603F; font-weight:700; text-decoration:none; }
+        .ns-sales-link:hover { color:#9E492D; }
+        .ns-sales-card { background:#fff; border:1px solid #F0DDD5; border-radius:18px; padding:24px; height:100%; box-shadow:0 8px 25px rgba(93,57,45,.045); }
+        .ns-sales-icon { font-size:26px; margin-bottom:12px; }
+        .ns-sales-value { font-size:clamp(23px,3vw,33px); font-weight:800; overflow-wrap:anywhere; }
+        .ns-sales-label { color:#987A70; font-size:13px; font-weight:700; margin-top:5px; }
+        .ns-sales-panel { background:#fff; border:1px solid #F0DDD5; border-radius:18px; overflow:hidden; margin-top:28px; }
+        .ns-sales-panel-head { padding:20px 24px; border-bottom:1px solid #F0DDD5; }
+        .ns-sales-panel-head h2 { font-size:19px; font-weight:800; margin:0; }
+        .ns-sales-table { width:100%; border-collapse:collapse; }
+        .ns-sales-table th,.ns-sales-table td { padding:14px 20px; text-align:left; border-bottom:1px solid #F6EAE5; vertical-align:middle; }
+        .ns-sales-table th { color:#76584F; background:#FFF5F0; font-size:12px; white-space:nowrap; }
+        .ns-sales-table tbody tr:last-child td { border-bottom:0; }
+        .ns-sales-empty { padding:30px; text-align:center; color:#987A70; }
+        .ns-sales-note { margin-top:18px; color:#92776D; font-size:13px; }
+        .ns-sales-bar { display:flex; height:12px; border-radius:99px; background:#F8E9E2; overflow:hidden; min-width:110px; }
+        .ns-sales-bar-fill { height:100%; background:#C0603F; border-radius:99px; }
+        .ns-sales-filter { background:#fff; border:1px solid #F0DDD5; border-radius:18px; padding:24px; margin:0 0 28px; box-shadow:0 8px 25px rgba(93,57,45,.045); }
+        .ns-sales-filter h2 { font-size:19px; font-weight:800; margin:0 0 18px; }
+        .ns-sales-filter label { color:#76584F; font-size:13px; font-weight:700; }
+        .ns-sales-filter .form-control { border:1px solid #E9C6B8; border-radius:10px; padding:11px 12px; }
+        .ns-sales-filter .form-control:focus { border-color:#C0603F; box-shadow:0 0 0 .2rem rgba(192,96,63,.12); }
+        .ns-sales-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; background:#C0603F; color:#fff; border:0; border-radius:11px; padding:12px 18px; text-decoration:none; font-weight:700; cursor:pointer; }
+        .ns-sales-btn:hover { background:#9E492D; color:#fff; }
+        .ns-sales-btn-dark { background:#49332D; }
+        .ns-sales-btn-dark:hover { background:#33231F; }
+        .ns-sales-filter-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:18px; }
+        .ns-sales-period { color:#76584F; font-size:13px; margin:16px 0 0; }
+        @media(max-width:768px) { .ns-sales { padding:15px 0 35px; } .ns-sales-card { padding:20px; } .ns-sales-filter { padding:20px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="ns-sales">
+    <div class="ns-sales-header">
+        <div>
+            <h1>✦ <span style="color:#C0603F">Sales</span> Reports</h1>
+            <p>Review delivered orders, revenue, and best-selling beauty essentials.</p>
+        </div>
+        <a class="ns-sales-link" href="{{ path('admin_dashboard') }}">← Back to Dashboard</a>
+    </div>
+
+    {# DATE FILTERS — Step 24 #}
+    <section class="ns-sales-filter" aria-labelledby="ns-sales-filter-heading">
+        <h2 id="ns-sales-filter-heading">📅 Filter Sales by Date</h2>
+        <form method="get" action="{{ path('admin_sales_report') }}" class="row g-3 align-items-end">
+            <div class="col-12 col-md-5">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ startDate|default('') }}">
+            </div>
+            <div class="col-12 col-md-5">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ endDate|default('') }}">
+            </div>
+            <div class="col-12 col-md-2">
+                <button type="submit" class="ns-sales-btn w-100">🔍 Apply</button>
+            </div>
+        </form>
+        <div class="ns-sales-filter-actions">
+            <a class="ns-sales-link" href="{{ path('admin_sales_report') }}">Clear Filters</a>
+            <a class="ns-sales-btn ns-sales-btn-dark" href="{{ path('admin_sales_export', {start_date: startDate|default(''), end_date: endDate|default('')}) }}">📥 Export Filtered Sales (CSV)</a>
+        </div>
+        {% if startDate|default('') or endDate|default('') %}
+            <p class="ns-sales-period">Showing delivered orders placed
+                {% if startDate|default('') %}from <strong>{{ startDate|date('M d, Y') }}</strong>{% endif %}
+                {% if endDate|default('') %}through <strong>{{ endDate|date('M d, Y') }}</strong>{% endif %}.
+            </p>
+        {% else %}
+            <p class="ns-sales-period">Showing delivered orders from all dates.</p>
+        {% endif %}
+    </section>
+
+    <div class="row g-4">
+        <div class="col-12 col-sm-6 col-xl-3"><div class="ns-sales-card"><div class="ns-sales-icon">💰</div><div class="ns-sales-value">₱{{ totalRevenue|number_format(2) }}</div><div class="ns-sales-label">DELIVERED-ORDER REVENUE</div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="ns-sales-card"><div class="ns-sales-icon">📦</div><div class="ns-sales-value">{{ completedOrderCount }}</div><div class="ns-sales-label">DELIVERED ORDERS</div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="ns-sales-card"><div class="ns-sales-icon">🛍️</div><div class="ns-sales-value">{{ totalProductsSold }}</div><div class="ns-sales-label">PRODUCT UNITS SOLD</div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="ns-sales-card"><div class="ns-sales-icon">📈</div><div class="ns-sales-value">₱{{ averageOrderValue|number_format(2) }}</div><div class="ns-sales-label">AVERAGE DELIVERED ORDER</div></div></div>
+    </div>
+
+    <section class="ns-sales-panel">
+        <div class="ns-sales-panel-head"><h2>📊 Monthly Revenue</h2></div>
+        {% if monthlySales is not empty %}
+            {% set maxMonthlyRevenue = max(monthlySales) %}
+            <div class="table-responsive"><table class="ns-sales-table"><thead><tr><th>Order Month</th><th>Revenue</th><th>Relative Sales</th></tr></thead><tbody>
+            {% for month, revenue in monthlySales %}
+                <tr><td>{{ (month ~ '-01')|date('F Y') }}</td><td><strong>₱{{ revenue|number_format(2) }}</strong></td><td><div class="ns-sales-bar" aria-label="{{ maxMonthlyRevenue > 0 ? ((revenue / maxMonthlyRevenue) * 100)|round : 0 }} percent of highest month"><div class="ns-sales-bar-fill" style="width:{{ maxMonthlyRevenue > 0 ? ((revenue / maxMonthlyRevenue) * 100)|round : 0 }}%"></div></div></td></tr>
+            {% endfor %}
+            </tbody></table></div>
+        {% else %}
+            <div class="ns-sales-empty">No delivered orders in this period. Monthly revenue will appear when a matching order is marked Delivered.</div>
+        {% endif %}
+    </section>
+
+    <section class="ns-sales-panel">
+        <div class="ns-sales-panel-head"><h2>🏆 Top 5 Best-Selling Products</h2></div>
+        {% if bestSellingProducts is not empty %}
+            <div class="table-responsive"><table class="ns-sales-table"><thead><tr><th>Rank</th><th>Product</th><th>Units Sold</th><th>Item Revenue</th></tr></thead><tbody>
+            {% for entry in bestSellingProducts %}
+                <tr><td><strong>#{{ loop.index }}</strong></td><td>{{ entry.product.name }}</td><td>{{ entry.quantity }}</td><td>₱{{ entry.revenue|number_format(2) }}</td></tr>
+            {% endfor %}
+            </tbody></table></div>
+        {% else %}
+            <div class="ns-sales-empty">No best-selling products for the selected period.</div>
+        {% endif %}
+    </section>
+
+    <section class="ns-sales-panel">
+        <div class="ns-sales-panel-head"><h2>🧾 Recent Delivered Orders</h2></div>
+        {% if deliveredOrders is not empty %}
+            <div class="table-responsive"><table class="ns-sales-table"><thead><tr><th>Order</th><th>Customer</th><th>Order Date</th><th>Payment</th><th>Amount</th></tr></thead><tbody>
+            {% for order in deliveredOrders %}
+                <tr><td><strong>#{{ order.id }}</strong></td><td>{{ order.customer.email }}</td><td>{{ order.createdAt|date('M d, Y') }}</td><td>{{ order.paymentMethod }}</td><td>₱{{ order.totalAmount|number_format(2) }}</td></tr>
+            {% endfor %}
+            </tbody></table></div>
+        {% else %}
+            <div class="ns-sales-empty">No delivered orders to display for the selected period.</div>
+        {% endif %}
+    </section>
+    <p class="ns-sales-note">Reports count orders marked Delivered. Date filters and monthly revenue use the date each order was placed, not its delivery date. COD payment collection is not independently verified.</p>
+</div>
+{% endblock %}

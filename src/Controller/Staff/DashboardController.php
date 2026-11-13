@@ -23,7 +23,11 @@ class DashboardController extends AbstractController
         /** @var User $staff */
         $staff = $this->getUser();
 
+        // ==========================================
         // STAFF PRODUCT STATISTICS
+        // ==========================================
+
+        // Staff can only see products they created.
         $products = $productRepository->findBy(
             ['createdBy' => $staff],
             ['createdAt' => 'DESC']
@@ -34,6 +38,9 @@ class DashboardController extends AbstractController
         $lowStock = 0;
         $outOfStock = 0;
 
+        $lowStockProducts = [];
+        $outOfStockProducts = [];
+
         foreach ($products as $product) {
             $stock = $product->getStock() ?? 0;
 
@@ -41,19 +48,33 @@ class DashboardController extends AbstractController
 
             if ($stock === 0) {
                 $outOfStock++;
+                $outOfStockProducts[] = $product;
             } elseif ($stock <= 5) {
                 $lowStock++;
+                $lowStockProducts[] = $product;
             }
         }
 
+        // Show products with the lowest stock first.
+        usort(
+            $lowStockProducts,
+            fn ($a, $b) =>
+                ($a->getStock() ?? 0) <=> ($b->getStock() ?? 0)
+        );
+
         $recentProducts = array_slice($products, 0, 5);
 
+        // ==========================================
         // STAFF ORDER STATISTICS
+        // ==========================================
+
         $totalOrders = 0;
         $pendingOrders = 0;
         $processingOrders = 0;
         $shippedOrders = 0;
         $deliveredOrders = 0;
+        $cancelledOrders = 0;
+
         $recentOrders = [];
 
         foreach ($orderRepository->findBy(
@@ -70,6 +91,8 @@ class DashboardController extends AbstractController
 
             $canManage = true;
 
+            // Staff can only see orders containing
+            // products that belong to them.
             foreach ($items as $item) {
                 $owner = $item->getProduct()?->getCreatedBy();
 
@@ -101,6 +124,10 @@ class DashboardController extends AbstractController
                 case 'Delivered':
                     $deliveredOrders++;
                     break;
+
+                case 'Cancelled':
+                    $cancelledOrders++;
+                    break;
             }
 
             if (count($recentOrders) < 5) {
@@ -108,19 +135,28 @@ class DashboardController extends AbstractController
             }
         }
 
+        // ==========================================
+        // RENDER STAFF DASHBOARD
+        // ==========================================
+
         return $this->render('staff/dashboard.html.twig', [
+            // Product statistics
             'totalProducts' => $totalProducts,
             'totalRecords' => $totalProducts,
             'totalStock' => $totalStock,
             'lowStock' => $lowStock,
             'outOfStock' => $outOfStock,
+            'lowStockProducts' => $lowStockProducts,
+            'outOfStockProducts' => $outOfStockProducts,
             'recentProducts' => $recentProducts,
 
+            // Order statistics
             'totalOrders' => $totalOrders,
             'pendingOrders' => $pendingOrders,
             'processingOrders' => $processingOrders,
             'shippedOrders' => $shippedOrders,
             'deliveredOrders' => $deliveredOrders,
+            'cancelledOrders' => $cancelledOrders,
             'recentOrders' => $recentOrders,
         ]);
     }

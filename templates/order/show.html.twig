@@ -1,0 +1,280 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Details | NS COSMETIQ{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    <style>
+        .customer-order-page {
+            color: #49332D;
+        }
+
+        .customer-order-card {
+            background: #FFFFFF;
+            border: 1px solid #F0DDD5;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 22px;
+        }
+
+        .customer-order-page h2,
+        .customer-order-page h4 {
+            font-weight: 800;
+        }
+
+        .customer-order-page h2 {
+            margin-bottom: 22px;
+        }
+
+        .customer-order-table thead {
+            background: #FFF0E9;
+        }
+
+        .customer-order-table th {
+            color: #49332D;
+            font-weight: 700;
+        }
+
+        .customer-order-table td,
+        .customer-order-table th {
+            padding: 14px;
+            vertical-align: middle;
+        }
+
+        .customer-order-total {
+            color: #C0603F;
+            font-weight: 800;
+            font-size: 24px;
+        }
+
+        .customer-order-btn {
+            display: inline-block;
+            padding: 11px 20px;
+            border-radius: 10px;
+            background: #C0603F;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+        }
+
+        .customer-order-btn:hover {
+            background: #9E492D;
+            color: #FFFFFF;
+        }
+
+        .customer-cancel-card {
+            background: #FFF8F6;
+            border: 1px solid #EAC5BD;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 22px;
+        }
+
+        .customer-cancel-btn {
+            background: #B74752;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 20px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .customer-cancel-btn:hover {
+            background: #963642;
+        }
+
+        .customer-status {
+            display: inline-block;
+            padding: 7px 13px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .customer-status-pending {
+            background: #FFF2D9;
+            color: #956017;
+        }
+
+        .customer-status-processing {
+            background: #E6F0FF;
+            color: #315D9C;
+        }
+
+        .customer-status-shipped {
+            background: #F0E8FA;
+            color: #7044A0;
+        }
+
+        .customer-status-delivered {
+            background: #E6F6EB;
+            color: #26724A;
+        }
+
+        .customer-status-cancelled {
+            background: #FCE7E9;
+            color: #AD4350;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-5 customer-order-page">
+
+    <h2>Order #{{ order.id }}</h2>
+
+    {# SUCCESS AND ERROR MESSAGES #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# ORDER INFORMATION #}
+    <div class="customer-order-card">
+
+        <h4>Order Information</h4>
+
+        <p>
+            <strong>Status:</strong>
+            <span class="customer-status customer-status-{{ order.status|lower }}">
+                {{ order.status }}
+            </span>
+        </p>
+
+        <p>
+            <strong>Date:</strong>
+            {{ order.createdAt|date('M d, Y h:i A') }}
+        </p>
+
+        <p>
+            <strong>Shipping Address:</strong>
+            {{ order.shippingAddress }}
+        </p>
+
+        <p>
+            <strong>Contact Number:</strong>
+            {{ order.contactNumber }}
+        </p>
+
+        <p>
+            <strong>Payment Method:</strong>
+            {{ order.paymentMethod }}
+        </p>
+
+    </div>
+
+    {# PURCHASED PRODUCTS #}
+    <div class="customer-order-card">
+
+        <h4>Purchased Products</h4>
+
+        <div class="table-responsive">
+            <table class="table table-bordered customer-order-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+
+                            <td>{{ item.quantity }}</td>
+
+                            <td>
+                                ₱{{ item.unitPrice|number_format(2) }}
+                            </td>
+
+                            <td>
+                                ₱{{ (item.unitPrice * item.quantity)|number_format(2) }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-3">
+            <div class="text-muted">ORDER TOTAL</div>
+
+            <div class="customer-order-total">
+                ₱{{ order.totalAmount|number_format(2) }}
+            </div>
+        </div>
+
+    </div>
+
+    {# CANCEL ORDER - PENDING ONLY #}
+    {% if order.status == 'Pending' %}
+
+        <div class="customer-cancel-card">
+
+            <h4>Cancel This Order</h4>
+
+            <p class="text-muted">
+                You may cancel this order while its status is
+                still Pending. Once cancelled, the purchased
+                products will be returned to inventory.
+            </p>
+
+            <form
+                method="post"
+                action="{{ path('order_cancel', {id: order.id}) }}"
+                onsubmit="return confirm('Are you sure you want to cancel Order #{{ order.id }}? This action cannot be undone.');"
+            >
+
+                <input
+                    type="hidden"
+                    name="_token"
+                    value="{{ csrf_token('cancel_order_' ~ order.id) }}"
+                >
+
+                <button type="submit" class="customer-cancel-btn">
+                    Cancel Order
+                </button>
+
+            </form>
+
+        </div>
+
+    {% elseif order.status == 'Cancelled' %}
+
+        <div class="alert alert-secondary">
+            <strong>Order Cancelled</strong>
+
+            <p class="mb-0 mt-2">
+                This order has been cancelled successfully.
+                Its purchased product quantities have been
+                returned to inventory.
+            </p>
+        </div>
+
+    {% endif %}
+
+    {# BACK TO ORDER HISTORY #}
+    <a
+        href="{{ path('customer_orders') }}"
+        class="customer-order-btn"
+    >
+        Back to My Orders
+    </a>
+
+</div>
+{% endblock %}
