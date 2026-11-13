@@ -4,14 +4,9 @@
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>
-        {% block title %}NS COSMETIQ{% endblock %}
-    </title>
+    <title>{% block title %}NS COSMETIQ{% endblock %}</title>
 
     {# BOOTSTRAP #}
     <link
@@ -58,6 +53,38 @@
         }
 
         /* ==========================
+           NS COSMETIQ SIDEBAR LOGO
+           ========================== */
+
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            text-decoration: none;
+        }
+
+        .brand-logo img {
+            display: block;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .sidebar .brand {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--ns-border);
+        }
+
+        .sidebar .brand-logo img {
+            width: 130px;
+            height: 115px;
+            object-fit: contain;
+        }
+
+        /* ==========================
            ADMIN AND STAFF LAYOUT
            ========================== */
 
@@ -75,14 +102,6 @@
             flex-shrink: 0;
             background: var(--ns-blush) !important;
             border-right: 1px solid var(--ns-border);
-        }
-
-        .sidebar .brand {
-            padding: 24px 20px;
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--ns-brown);
-            border-bottom: 1px solid var(--ns-border);
         }
 
         .sidebar .menu-label {
@@ -115,26 +134,29 @@
             background: var(--ns-cream);
         }
 
+        /* ==========================
+           CLEAN TOP HEADER
+           ========================== */
+
         .top-header {
             background: #FFFFFF;
-            padding: 18px 25px;
+            min-height: 70px;
+            padding: 15px 30px;
             border-bottom: 1px solid #EEDBD4;
+            gap: 15px;
         }
 
-        .top-header strong {
-            color: var(--ns-terracotta);
-            font-weight: 800;
-        }
-
-        .header-subtitle {
-            margin-left: 12px;
-            color: #94786F;
-            font-size: 13px;
+        .management-header-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ns-brown);
+            letter-spacing: 0.3px;
         }
 
         .header-user {
             color: var(--ns-brown);
             font-weight: 600;
+            font-size: 14px;
         }
 
         .management-main {
@@ -176,6 +198,8 @@
             width: 100%;
             max-width: 100%;
             min-width: 0;
+            margin: 0;
+            padding: 0;
         }
 
         .customer-main .ns-store > section,
@@ -215,10 +239,17 @@
         }
 
         @media (max-width: 576px) {
-            .header-subtitle {
-                display: block;
-                margin-left: 0;
-                margin-top: 5px;
+            .sidebar .brand-logo img {
+                width: 110px;
+                height: 100px;
+            }
+
+            .management-header-title {
+                font-size: 15px;
+            }
+
+            .header-user {
+                font-size: 13px;
             }
 
             .management-main {
@@ -261,25 +292,29 @@
 
         {# MANAGEMENT HEADER #}
         {% if is_management %}
+
             <header class="top-header d-flex justify-content-between align-items-center">
 
-                <div>
-                    <strong>NS COSMETIQ</strong>
+                {# HEADER TITLE - NO DUPLICATE LOGO #}
+                <div class="d-flex align-items-center">
 
-                    <span class="header-subtitle">
+                    <span class="management-header-title">
                         {% if is_granted('ROLE_ADMIN') %}
                             Admin Management System
                         {% else %}
                             Staff Management System
                         {% endif %}
                     </span>
+
                 </div>
 
+                {# LOGGED-IN USER #}
                 <span class="header-user">
                     {{ app.user.fullName }}
                 </span>
 
             </header>
+
         {% endif %}
 
         {# MAIN PAGE CONTENT #}
@@ -288,6 +323,7 @@
             {# FLASH MESSAGES #}
             {% for type, messages in app.flashes %}
                 {% for msg in messages %}
+
                     <div
                         class="alert alert-{{ type }} alert-dismissible fade show"
                         role="alert"
@@ -300,7 +336,9 @@
                             data-bs-dismiss="alert"
                             aria-label="Close"
                         ></button>
+
                     </div>
+
                 {% endfor %}
             {% endfor %}
 

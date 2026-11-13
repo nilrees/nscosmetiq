@@ -1,8 +1,21 @@
 
 <aside class="sidebar">
 
+    {# =========================
+       NS COSMETIQ ORIGINAL LOGO
+       ========================= #}
+
     <div class="brand">
-        NS COSMETIQ
+        <a
+            href="{{ path(is_granted('ROLE_ADMIN') ? 'admin_dashboard' : 'staff_dashboard') }}"
+            class="brand-logo"
+            aria-label="NS COSMETIQ Dashboard"
+        >
+            <img
+                src="{{ asset('images/ns-cosmetiq-logo.png') }}"
+                alt="NS COSMETIQ Logo"
+            >
+        </a>
     </div>
 
     {% if is_granted('ROLE_ADMIN') %}
@@ -15,21 +28,27 @@
 
         <nav class="nav flex-column">
 
-            <a class="nav-link
-                {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}"
-               href="{{ path('admin_dashboard') }}">
+            {# DASHBOARD #}
+            <a
+                class="nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}"
+                href="{{ path('admin_dashboard') }}"
+            >
                 Dashboard
             </a>
 
-            <a class="nav-link
-                {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
-               href="{{ path('product_index') }}">
+            {# MANAGE PRODUCTS #}
+            <a
+                class="nav-link {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
+                href="{{ path('product_index') }}"
+            >
                 Manage Products
             </a>
 
-            <a class="nav-link
-                {% if app.request.attributes.get('_route') starts with 'admin_user_' %}active{% endif %}"
-               href="{{ path('admin_user_index') }}">
+            {# MANAGE USERS #}
+            <a
+                class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_user_' %}active{% endif %}"
+                href="{{ path('admin_user_index') }}"
+            >
                 Manage Users
             </a>
 
@@ -45,15 +64,19 @@
 
         <nav class="nav flex-column">
 
-            <a class="nav-link
-                {% if app.request.attributes.get('_route') == 'staff_dashboard' %}active{% endif %}"
-               href="{{ path('staff_dashboard') }}">
+            {# STAFF DASHBOARD #}
+            <a
+                class="nav-link {% if app.request.attributes.get('_route') == 'staff_dashboard' %}active{% endif %}"
+                href="{{ path('staff_dashboard') }}"
+            >
                 Dashboard
             </a>
 
-            <a class="nav-link
-                {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
-               href="{{ path('product_index') }}">
+            {# MY PRODUCTS #}
+            <a
+                class="nav-link {% if app.request.attributes.get('_route') starts with 'product_' %}active{% endif %}"
+                href="{{ path('product_index') }}"
+            >
                 My Products
             </a>
 
@@ -69,27 +92,35 @@
 
     <nav class="nav flex-column">
 
-        <a class="nav-link
-            {% if app.request.attributes.get('_route') == 'app_profile' %}active{% endif %}"
-           href="{{ path('app_profile') }}">
+        {# MY PROFILE #}
+        <a
+            class="nav-link {% if app.request.attributes.get('_route') == 'app_profile' %}active{% endif %}"
+            href="{{ path('app_profile') }}"
+        >
             My Profile
         </a>
 
-        <a class="nav-link
-            {% if app.request.attributes.get('_route') == 'app_change_password' %}active{% endif %}"
-           href="{{ path('app_change_password') }}">
+        {# CHANGE PASSWORD #}
+        <a
+            class="nav-link {% if app.request.attributes.get('_route') == 'app_change_password' %}active{% endif %}"
+            href="{{ path('app_change_password') }}"
+        >
             Change Password
         </a>
 
         {# BACK TO HOMEPAGE #}
-        <a class="nav-link"
-           href="{{ path('app_home') }}">
+        <a
+            class="nav-link"
+            href="{{ path('app_home') }}"
+        >
             Back to Homepage
         </a>
 
         {# LOGOUT #}
-        <a class="nav-link"
-           href="{{ path('app_logout') }}">
+        <a
+            class="nav-link"
+            href="{{ path('app_logout') }}"
+        >
             Logout
         </a>
 
