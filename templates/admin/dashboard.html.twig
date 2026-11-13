@@ -354,10 +354,58 @@
 
     </div>
 
+
+{# ORDER STATISTICS #}
+<h2 class="ns-section-title">Order Overview</h2>
+
+<div class="row g-4">
+
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="ns-stat-card">
+            <div class="ns-stat-icon">📦</div>
+            <div class="ns-stat-value">
+                {{ totalOrders|default(0) }}
+            </div>
+            <div class="ns-stat-label">TOTAL ORDERS</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="ns-stat-card">
+            <div class="ns-stat-icon low">⏳</div>
+            <div class="ns-stat-value">
+                {{ pendingOrders|default(0) }}
+            </div>
+            <div class="ns-stat-label">PENDING ORDERS</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="ns-stat-card">
+            <div class="ns-stat-icon stock">🚚</div>
+            <div class="ns-stat-value">
+                {{ processingOrders|default(0) }}
+            </div>
+            <div class="ns-stat-label">PROCESSING ORDERS</div>
+        </div>
+    </div>
+
+</div>
+
     {# MANAGEMENT LINKS #}
     <h2 class="ns-section-title">Store Management</h2>
 
     <div class="row g-4">
+
+
+<div class="col-12 col-md-6 col-xl-4">
+    <a href="{{ path('staff_orders') }}" class="ns-feature-card">
+        <div class="ns-feature-icon">🛍️</div>
+        <h3>Manage Orders</h3>
+        <p>View customer orders and update delivery statuses.</p>
+    </a>
+</div>
+
 
         <div class="col-12 col-md-6 col-xl-4">
             <a href="{{ path('product_index') }}" class="ns-feature-card">

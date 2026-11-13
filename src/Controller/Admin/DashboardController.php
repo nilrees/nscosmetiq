@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,9 +16,10 @@ class DashboardController extends AbstractController
     #[Route('/admin/dashboard', name: 'admin_dashboard', methods: ['GET'])]
     public function index(
         UserRepository $userRepository,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
+        OrderRepository $orderRepository
     ): Response {
-        // Retrieve all registered users.
+        // USER STATISTICS
         $users = $userRepository->findAll();
 
         $totalUsers = count($users);
@@ -37,7 +39,7 @@ class DashboardController extends AbstractController
             }
         }
 
-        // Retrieve all products for inventory statistics.
+        // PRODUCT STATISTICS
         $products = $productRepository->findAll();
 
         $totalRecords = count($products);
@@ -57,8 +59,28 @@ class DashboardController extends AbstractController
             }
         }
 
-        // Retrieve the five newest products.
         $recentProducts = $productRepository->findBy(
+            [],
+            ['createdAt' => 'DESC'],
+            5
+        );
+
+        // ORDER STATISTICS - ALL CUSTOMER ORDERS
+        $totalOrders = $orderRepository->count([]);
+        $pendingOrders = $orderRepository->count([
+            'status' => 'Pending',
+        ]);
+        $processingOrders = $orderRepository->count([
+            'status' => 'Processing',
+        ]);
+        $shippedOrders = $orderRepository->count([
+            'status' => 'Shipped',
+        ]);
+        $deliveredOrders = $orderRepository->count([
+            'status' => 'Delivered',
+        ]);
+
+        $recentOrders = $orderRepository->findBy(
             [],
             ['createdAt' => 'DESC'],
             5
@@ -75,6 +97,13 @@ class DashboardController extends AbstractController
             'lowStock' => $lowStock,
             'outOfStock' => $outOfStock,
             'recentProducts' => $recentProducts,
+
+            'totalOrders' => $totalOrders,
+            'pendingOrders' => $pendingOrders,
+            'processingOrders' => $processingOrders,
+            'shippedOrders' => $shippedOrders,
+            'deliveredOrders' => $deliveredOrders,
+            'recentOrders' => $recentOrders,
         ]);
     }
 }

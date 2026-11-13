@@ -499,6 +499,52 @@
 
     </div>
 
+
+{# STAFF ORDER STATISTICS #}
+<div class="staff-section">
+
+    <div class="staff-section-heading">
+        <div>
+            <h2>My Order Overview</h2>
+            <p>Orders assigned to your products.</p>
+        </div>
+
+        <a href="{{ path('staff_orders') }}"
+           class="staff-btn">
+            View Orders
+        </a>
+    </div>
+
+    <div class="staff-stats">
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon">📦</div>
+            <div class="staff-stat-label">My Orders</div>
+            <div class="staff-stat-number">
+                {{ totalOrders|default(0) }}
+            </div>
+        </div>
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon low">⏳</div>
+            <div class="staff-stat-label">Pending</div>
+            <div class="staff-stat-number">
+                {{ pendingOrders|default(0) }}
+            </div>
+        </div>
+
+        <div class="staff-stat-card">
+            <div class="staff-stat-icon stock">🚚</div>
+            <div class="staff-stat-label">Processing</div>
+            <div class="staff-stat-number">
+                {{ processingOrders|default(0) }}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
     {# QUICK ACTIONS #}
 
     <div class="staff-section">
@@ -514,6 +560,22 @@
         </div>
 
         <div class="staff-actions">
+
+
+<a href="{{ path('staff_orders') }}"
+   class="staff-action-card">
+
+    <div class="staff-action-icon">🛍️</div>
+
+    <h3>Manage Orders</h3>
+
+    <p>
+        View customer purchases containing your products
+        and update eligible order statuses.
+    </p>
+
+</a>
+
 
             <a href="{{ path('product_new') }}"
                class="staff-action-card">

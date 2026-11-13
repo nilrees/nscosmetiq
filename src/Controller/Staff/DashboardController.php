@@ -3,6 +3,8 @@
 namespace App\Controller\Staff;
 
 use App\Entity\User;
+use App\Repository\OrderRepository;
+use App\Repository\OrderItemRepository;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,12 +16,14 @@ class DashboardController extends AbstractController
 {
     #[Route('/staff/dashboard', name: 'staff_dashboard', methods: ['GET'])]
     public function index(
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
+        OrderRepository $orderRepository,
+        OrderItemRepository $orderItemRepository
     ): Response {
         /** @var User $staff */
         $staff = $this->getUser();
 
-        // Retrieve products created by the logged-in user.
+        // STAFF PRODUCT STATISTICS
         $products = $productRepository->findBy(
             ['createdBy' => $staff],
             ['createdAt' => 'DESC']
@@ -42,8 +46,67 @@ class DashboardController extends AbstractController
             }
         }
 
-        // Display the five newest products.
         $recentProducts = array_slice($products, 0, 5);
+
+        // STAFF ORDER STATISTICS
+        $totalOrders = 0;
+        $pendingOrders = 0;
+        $processingOrders = 0;
+        $shippedOrders = 0;
+        $deliveredOrders = 0;
+        $recentOrders = [];
+
+        foreach ($orderRepository->findBy(
+            [],
+            ['createdAt' => 'DESC']
+        ) as $order) {
+            $items = $orderItemRepository->findBy([
+                'customerOrder' => $order,
+            ]);
+
+            if (!$items) {
+                continue;
+            }
+
+            $canManage = true;
+
+            foreach ($items as $item) {
+                $owner = $item->getProduct()?->getCreatedBy();
+
+                if ($owner?->getId() !== $staff->getId()) {
+                    $canManage = false;
+                    break;
+                }
+            }
+
+            if (!$canManage) {
+                continue;
+            }
+
+            $totalOrders++;
+
+            switch ($order->getStatus()) {
+                case 'Pending':
+                    $pendingOrders++;
+                    break;
+
+                case 'Processing':
+                    $processingOrders++;
+                    break;
+
+                case 'Shipped':
+                    $shippedOrders++;
+                    break;
+
+                case 'Delivered':
+                    $deliveredOrders++;
+                    break;
+            }
+
+            if (count($recentOrders) < 5) {
+                $recentOrders[] = $order;
+            }
+        }
 
         return $this->render('staff/dashboard.html.twig', [
             'totalProducts' => $totalProducts,
@@ -52,6 +115,13 @@ class DashboardController extends AbstractController
             'lowStock' => $lowStock,
             'outOfStock' => $outOfStock,
             'recentProducts' => $recentProducts,
+
+            'totalOrders' => $totalOrders,
+            'pendingOrders' => $pendingOrders,
+            'processingOrders' => $processingOrders,
+            'shippedOrders' => $shippedOrders,
+            'deliveredOrders' => $deliveredOrders,
+            'recentOrders' => $recentOrders,
         ]);
     }
 }
