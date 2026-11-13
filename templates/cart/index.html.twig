@@ -1,0 +1,83 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Shopping Cart | NS COSMETIQ{% endblock %}
+
+{% block body %}
+<div style="max-width: 1000px; margin: 40px auto; padding: 20px;">
+
+    <h1>My Shopping Cart</h1>
+
+    {% for message in app.flashes('success') %}
+        <p style="color: green;">{{ message }}</p>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <p style="color: red;">{{ message }}</p>
+    {% endfor %}
+
+    {% if items is empty %}
+        <p>Your shopping cart is empty.</p>
+    {% else %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>₱{{ item.product.price|number_format(2) }}</td>
+                        
+<td>
+    <form method="post"
+          action="{{ path('cart_update', {id: item.product.id}) }}"
+          class="d-flex align-items-center gap-2">
+
+        <input type="hidden"
+               name="_token"
+               value="{{ csrf_token('cart_update_' ~ item.product.id) }}">
+
+        <input type="number"
+               name="quantity"
+               value="{{ item.quantity }}"
+               min="1"
+               max="{{ item.product.stock }}"
+               class="form-control"
+               style="width:85px;"
+               required>
+
+        <button type="submit"
+                class="btn btn-sm"
+                style="background:#C0603F;color:white;">
+            Update
+        </button>
+    </form>
+</td>
+
+                        <td>₱{{ item.subtotal|number_format(2) }}</td>
+                        <td>
+                            <form method="post"
+                                  action="{{ path('cart_remove', {id: item.product.id}) }}">
+                                <input type="hidden" name="_token"
+                                       value="{{ csrf_token('cart_remove_' ~ item.product.id) }}">
+                                <button type="submit">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Total: ₱{{ total|number_format(2) }}</h2>
+
+        <p>Checkout will be added in the next step.</p>
+    {% endif %}
+</div>
+{% endblock %}
