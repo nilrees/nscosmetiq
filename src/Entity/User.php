@@ -85,20 +85,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
+
 public function getRoles(): array
 {
     $roles = $this->roles;
 
-    // Every non-admin account automatically receives STAFF access.
-    if (!in_array('ROLE_ADMIN', $roles, true)) {
-        $roles[] = 'ROLE_STAFF';
-    }
-
-    // Every account also receives the basic USER role.
+    // Every account has basic USER access
     $roles[] = 'ROLE_USER';
 
     return array_values(array_unique($roles));
 }
+
 
     /**
      * @param list<string> $roles

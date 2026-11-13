@@ -1,0 +1,348 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Create New Account | NS Cosmetiq{% endblock %}
+
+{% block body %}
+
+<style>
+.ns-register-page {
+    min-height: 100vh;
+    background: #fcf8f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ns-register-container {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    width: 100%;
+    max-width: 950px;
+    background: white;
+    border: 1px solid #eadbd5;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 12px 35px rgba(70, 40, 30, 0.06);
+}
+
+.ns-register-left {
+    padding: 45px 50px;
+}
+
+.ns-register-brand {
+    margin-bottom: 30px;
+}
+
+.ns-register-brand h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #302623;
+    margin: 8px 0;
+}
+
+.ns-register-brand p {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #9b8178;
+}
+
+.ns-register-mark {
+    color: #a94f36;
+    font-size: 25px;
+}
+
+.ns-register-heading span {
+    color: #a94f36;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.ns-register-heading h1 {
+    font-size: 27px;
+    color: #302623;
+    margin: 12px 0;
+}
+
+.ns-register-heading p {
+    color: #897c76;
+    font-size: 14px;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.ns-register-form label {
+    display: block;
+    margin-bottom: 7px;
+    color: #49352f;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.ns-register-form input[type="text"],
+.ns-register-form input[type="email"],
+.ns-register-form input[type="password"] {
+    width: 100%;
+    padding: 13px 15px;
+    border: 1px solid #dfcec6;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    background: white;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.ns-register-form input:focus {
+    border-color: #a94f36;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(169,79,54,0.1);
+}
+
+.ns-register-form input[type="checkbox"] {
+    accent-color: #a94f36;
+    margin-right: 8px;
+}
+
+.ns-register-form .form-check {
+    margin-bottom: 20px;
+}
+
+.ns-register-form ul {
+    color: #b42318;
+    font-size: 12px;
+    padding-left: 20px;
+    margin-bottom: 12px;
+}
+
+.ns-register-form .invalid-feedback {
+    color: #b42318;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.ns-register-button {
+    display: block;
+    width: 100%;
+    background: #a94f36;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 12px;
+}
+
+.ns-register-button:hover {
+    background: #8d3e2b;
+}
+
+.ns-register-login {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #81736d;
+}
+
+.ns-register-login a {
+    color: #a94f36;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ns-register-login a:hover {
+    text-decoration: underline;
+}
+
+.ns-register-right {
+    background: #f5e5de;
+    display: flex;
+    align-items: center;
+    padding: 45px;
+}
+
+.ns-register-visual span {
+    color: #a94f36;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.ns-register-visual h2 {
+    font-size: 34px;
+    line-height: 1.25;
+    color: #362b27;
+    margin: 20px 0;
+}
+
+.ns-register-visual p {
+    color: #81736d;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.ns-register-line {
+    width: 55px;
+    height: 2px;
+    background: #a94f36;
+    margin: 30px 0;
+}
+
+@media (max-width: 768px) {
+    .ns-register-container {
+        grid-template-columns: 1fr;
+    }
+
+    .ns-register-left {
+        padding: 30px 24px;
+    }
+
+    .ns-register-right {
+        padding: 35px 24px;
+    }
+
+    .ns-register-visual h2 {
+        font-size: 27px;
+    }
+}
+</style>
+
+<div class="ns-register-page">
+
+    <div class="ns-register-container">
+
+        <!-- LEFT: REGISTRATION FORM -->
+        <div class="ns-register-left">
+
+            <div class="ns-register-brand">
+                <span class="ns-register-mark">✦</span>
+                <h2>NS COSMETIQ</h2>
+                <p>DISCOVER YOUR BEST SKIN</p>
+            </div>
+
+            <div class="ns-register-heading">
+
+                <span>WELCOME TO NS COSMETIQ</span>
+
+                <h1>Create New Account</h1>
+
+                <p>
+                    Join NS Cosmetiq and explore our
+                    collection of makeup and skincare
+                    essentials made just for you.
+                </p>
+
+            </div>
+
+            <!-- REGISTRATION FORM -->
+            {{ form_start(registrationForm, {
+                'attr': {
+                    'class': 'ns-register-form'
+                }
+            }) }}
+
+                {{ form_errors(registrationForm) }}
+
+                <!-- FULL NAME -->
+                {{ form_row(registrationForm.fullName, {
+                    'label': 'Full Name',
+                    'attr': {
+                        'placeholder': 'e.g. Maria Dela Cruz',
+                        'autocomplete': 'name'
+                    }
+                }) }}
+
+                <!-- EMAIL ADDRESS -->
+                {{ form_row(registrationForm.email, {
+                    'label': 'Email Address',
+                    'attr': {
+                        'placeholder': 'Enter your email address',
+                        'autocomplete': 'email'
+                    }
+                }) }}
+
+                <!-- PASSWORD -->
+                {{ form_row(registrationForm.plainPassword.first, {
+                    'label': 'Password',
+                    'attr': {
+                        'placeholder': 'Create a secure password',
+                        'autocomplete': 'new-password'
+                    }
+                }) }}
+
+                <!-- CONFIRM PASSWORD -->
+                {{ form_row(registrationForm.plainPassword.second, {
+                    'label': 'Confirm Password',
+                    'attr': {
+                        'placeholder': 'Confirm your password',
+                        'autocomplete': 'new-password'
+                    }
+                }) }}
+
+                {{ form_errors(registrationForm.plainPassword) }}
+
+                <!-- TERMS AND CONDITIONS -->
+                {% if registrationForm.agreeTerms is defined %}
+
+                    {{ form_row(registrationForm.agreeTerms, {
+                        'label': 'I agree to the terms and conditions'
+                    }) }}
+
+                {% endif %}
+
+                <!-- CREATE ACCOUNT BUTTON -->
+                <button
+                    type="submit"
+                    class="ns-register-button"
+                >
+                    CREATE NEW ACCOUNT →
+                </button>
+
+            {{ form_end(registrationForm) }}
+
+            <div class="ns-register-login">
+                Already have an account?
+                <a href="{{ path('app_login') }}">
+                    Sign In
+                </a>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: BRAND PRESENTATION -->
+        <div class="ns-register-right">
+
+            <div class="ns-register-visual">
+
+                <span>NS COSMETIQ</span>
+
+                <h2>
+                    Your Beauty Journey
+                    Starts Here.
+                </h2>
+
+                <p>
+                    Discover your favorite makeup and
+                    skincare essentials. Explore beauty,
+                    express your style, and feel confident
+                    every day.
+                </p>
+
+                <div class="ns-register-line"></div>
+
+                <span>DISCOVER YOUR BEST SKIN</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

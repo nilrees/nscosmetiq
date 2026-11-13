@@ -10,10 +10,15 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class ProductVoter extends Voter
 {
-    protected function supports(string $attribute, mixed $subject): bool
-    {
-        return in_array($attribute, ['edit', 'delete'], true)
-            && $subject instanceof Product;
+    protected function supports(
+        string $attribute,
+        mixed $subject
+    ): bool {
+        return in_array(
+            $attribute,
+            ['edit', 'delete'],
+            true
+        ) && $subject instanceof Product;
     }
 
     protected function voteOnAttribute(
@@ -28,12 +33,21 @@ class ProductVoter extends Voter
             return false;
         }
 
-        // Admin can edit and delete every product.
+        // Admin can edit and delete ALL products.
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Staff can only edit and delete their own products.
-        return $subject->getCreatedBy()?->getId() === $user->getId();
+        // Only staff members can manage their own products.
+        if (!in_array('ROLE_STAFF', $user->getRoles(), true)) {
+            return false;
+        }
+
+        // Staff can edit/delete ONLY products they created.
+        $owner = $subject->getCreatedBy();
+
+        return $owner !== null
+            && $owner->getId() !== null
+            && $owner->getId() === $user->getId();
     }
 }

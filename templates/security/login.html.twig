@@ -15,41 +15,53 @@
             <div class="ns-login-brand">
                 <span class="ns-brand-mark">✦</span>
                 <h2>NS COSMETIQ</h2>
-                <p>BEAUTY MANAGEMENT SYSTEM</p>
+                <p>DISCOVER YOUR BEST SKIN</p>
             </div>
 
             <div class="ns-login-form-wrapper">
 
                 <div class="ns-login-heading">
+
                     <span class="ns-login-eyebrow">
                         WELCOME BACK
                     </span>
 
-                    <h1>Sign in to your account</h1>
+                    <h1>Sign In to Your Account</h1>
 
                     <p>
-                        Manage your beauty products,
-                        inventory, and accounts.
+                        Welcome back to NS Cosmetiq.
+                        Sign in to continue your beauty journey.
                     </p>
+
                 </div>
 
+                <!-- LOGIN ERROR -->
                 {% if error %}
                     <div class="alert alert-danger">
                         {{ error.messageKey|trans(error.messageData, 'security') }}
                     </div>
                 {% endif %}
 
+                <!-- ALREADY LOGGED IN -->
                 {% if app.user %}
                     <div class="alert alert-info">
                         Logged in as {{ app.user.userIdentifier }}
-                        <a href="{{ logout_path() }}">Logout</a>
+
+                        <a href="{{ logout_path() }}">
+                            Logout
+                        </a>
                     </div>
                 {% endif %}
 
+                <!-- SIGN IN FORM -->
                 <form method="post" class="ns-login-form">
 
+                    <!-- EMAIL ADDRESS -->
                     <div class="ns-form-group">
-                        <label for="username">Email Address</label>
+
+                        <label for="username">
+                            Email Address
+                        </label>
 
                         <input
                             type="email"
@@ -62,10 +74,15 @@
                             required
                             autofocus
                         >
+
                     </div>
 
+                    <!-- PASSWORD -->
                     <div class="ns-form-group">
-                        <label for="password">Password</label>
+
+                        <label for="password">
+                            Password
+                        </label>
 
                         <input
                             type="password"
@@ -76,8 +93,10 @@
                             autocomplete="current-password"
                             required
                         >
+
                     </div>
 
+                    <!-- CSRF SECURITY -->
                     <input
                         type="hidden"
                         name="_csrf_token"
@@ -85,6 +104,7 @@
                         value="{{ csrf_token('authenticate') }}"
                     >
 
+                    <!-- SIGN IN BUTTON -->
                     <button
                         class="btn ns-login-button"
                         type="submit"
@@ -95,8 +115,63 @@
 
                 </form>
 
+                <!-- CREATE NEW ACCOUNT SECTION -->
+                <div
+                    class="ns-register-section"
+                    style="
+                        text-align: center;
+                        margin-top: 24px;
+                        padding-top: 22px;
+                        border-top: 1px solid #eadbd5;
+                    "
+                >
+
+                    <p style="
+                        font-size: 14px;
+                        color: #897c76;
+                        margin-bottom: 15px;
+                    ">
+                        Don't have an account yet?
+                    </p>
+
+                    <a
+                        href="{{ path('app_register') }}"
+                        class="ns-register-link"
+                        style="
+                            display: inline-block;
+                            padding: 13px 26px;
+                            background: #f5e5de;
+                            color: #a94f36;
+                            border: 1px solid #e9c6b8;
+                            border-radius: 8px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            text-decoration: none;
+                            transition: all 0.3s ease;
+                        "
+                    >
+                        CREATE NEW ACCOUNT →
+                    </a>
+
+                    <p style="
+                        font-size: 12px;
+                        color: #9b8178;
+                        margin-top: 15px;
+                    ">
+                        Discover your beauty journey
+                        with NS Cosmetiq.
+                    </p>
+
+                </div>
+
+                <!-- FOOTER -->
                 <div class="ns-login-footer">
-                    <p>© 2026 NS Cosmetiq. All rights reserved.</p>
+
+                    <p>
+                        © 2026 NS Cosmetiq.
+                        All rights reserved.
+                    </p>
+
                 </div>
 
             </div>
@@ -117,16 +192,16 @@
                     NS COSMETIQ
                 </span>
 
-               
-<h2>Welcome to NS Cosmetiq</h2>
+                <h2>
+                    Welcome to NS Cosmetiq
+                </h2>
 
-
-                
-<p>
-    Manage your products, inventory,
-    and team in one place.
-</p>
-
+                <p>
+                    Discover your favorite makeup
+                    and skincare essentials.
+                    Explore our collections and
+                    celebrate beauty your way.
+                </p>
 
                 <div class="ns-visual-line"></div>
 
